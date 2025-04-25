@@ -1,0 +1,46 @@
+{
+  "name": "notes",
+  "version": "1.0.0",
+  "description": "Electron notes application with TypeScript and React",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "concurrently \"npm run watch\" \"npm run electron-dev\"",
+    "electron-dev": "wait-on dist/main.js && electron .",
+    "build": "tsc && webpack --mode production",
+    "watch": "concurrently \"tsc -w\" \"webpack --mode development --watch\"",
+    "lint": "eslint --ext .ts,.tsx src/"
+  },
+  "keywords": [
+    "electron",
+    "typescript",
+    "react",
+    "notes"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^35.2.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/electron": "^1.4.38",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@typescript-eslint/eslint-plugin": "^8.31.0",
+    "@typescript-eslint/parser": "^8.31.0",
+    "concurrently": "^9.1.2",
+    "css-loader": "^7.1.2",
+    "eslint": "^9.25.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "html-webpack-plugin": "^5.6.3",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3",
+    "wait-on": "^8.0.3",
+    "webpack": "^5.99.6",
+    "webpack-cli": "^6.0.1"
+  }
+}
