@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@theme {
+    --color-editor-bg: #1e1e1e;
+    --color-sidebar-bg: #252526;
+    --color-sidebar-active: #37373d;
+    --color-accent: #007fd4;
+    --color-text-primary: #cccccc;
+    --color-text-secondary: #8a8a8a;
+    --color-border: #3e3e42;
+}
