@@ -25,7 +25,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ folders, activeNote, onSele
       <div className="px-3 py-4 text-lg text-white font-medium border-b border-border">
         Notes
       </div>
-      <div>
+      <div id="notes">
         {folders.map(folder => (
           <div key={folder.id}>
             <div

@@ -7,6 +7,8 @@
     "start": "electron .",
     "dev": "concurrently \"npm run watch\" \"npm run electron-dev\"",
     "electron-dev": "wait-on dist/main.js && electron .",
+    "test": "npx playwright test",
+    "test-headed": "npx playwright test --headed",
     "build": "tsc && webpack --mode production",
     "watch": "concurrently \"tsc -w\" \"webpack --mode development --watch\"",
     "lint": "eslint --ext .ts,.tsx src/"
@@ -29,8 +31,10 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.52.0",
     "@tailwindcss/postcss": "^4.1.4",
     "@types/electron": "^1.4.38",
+    "@types/node": "^22.15.2",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@types/uuid": "^10.0.0",
