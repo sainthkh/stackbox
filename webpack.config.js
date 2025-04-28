@@ -1,7 +1,8 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = {
+// Renderer process configuration
+const rendererConfig = {
   entry: './src/renderer/index.tsx',
   target: 'electron-renderer',
   module: {
@@ -30,3 +31,30 @@ module.exports = {
     }),
   ],
 };
+
+// Main process configuration
+const mainConfig = {
+  entry: {
+    main: './src/main/main.ts',
+    preload: './src/main/preload.ts',
+  },
+  target: 'electron-main',
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
+  },
+  output: {
+    filename: '[name].js',
+    path: path.resolve(__dirname, 'dist'),
+  },
+};
+
+module.exports = [rendererConfig, mainConfig];

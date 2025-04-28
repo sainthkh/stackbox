@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import * as fs from 'fs';
-import * as path from 'path';
 import FileExplorer from './components/FileExplorer';
 import MarkdownEditor from './components/MarkdownEditor';
 import { Note, Folder } from './types';
@@ -12,54 +9,59 @@ const App: React.FC = () => {
 
   // Load notes from sample-box on startup
   useEffect(() => {
-    try {
-      const sampleBoxPath = path.resolve('./sample-box');
-      
-      // Check if directory exists
-      if (fs.existsSync(sampleBoxPath)) {
-        const files = fs.readdirSync(sampleBoxPath);
-        
-        const notes = files
-          .filter(file => file.endsWith('.md'))
-          .map(file => {
-            const filePath = path.join(sampleBoxPath, file);
-            const content = fs.readFileSync(filePath, 'utf-8');
-            
+    const loadSampleNotes = async () => {
+      try {
+        // Resolve the sample-box path
+        const sampleBoxPath = await window.electronAPI.resolvePath('./sample-box');
+
+        // Get files via IPC
+        const files = await window.electronAPI.loadNotes(sampleBoxPath);
+
+        const notes = await Promise.all(
+          files.map(async (file) => {
+            // Read file content via IPC
+            const content = await window.electronAPI.readFile(file.filePath);
+            const uuid = await window.electronAPI.uuid();
+
             // Get title from filename without extension
-            const title = file.replace(/\.md$/, '');
-            
+            const title = file.fileName.replace(/\.md$/, '');
+
             return {
-              id: `note-${uuidv4()}`,
+              id: `note-${uuid}`,
               title,
               content,
-              lastModified: fs.statSync(filePath).mtime.getTime(),
+              lastModified: file.lastModified,
+              filePath: file.filePath,
             };
-          });
-        
+          })
+        );
+
         // Create folder with the loaded notes
         const sampleFolder: Folder = {
           id: 'sample-box',
           name: 'Sample Box',
           notes,
         };
-        
+
         setFolders([sampleFolder]);
-        
+
         // Set the first note as active if available
         if (notes.length > 0) {
           setActiveNote(notes[0]);
         }
+      } catch (error) {
+        console.error('Error loading sample notes:', error);
       }
-    } catch (error) {
-      console.error('Error loading sample notes:', error);
-    }
+    };
+
+    loadSampleNotes();
   }, []);
 
   const handleSelectNote = (note: Note) => {
     setActiveNote(note);
   };
 
-  const handleNoteChange = (content: string) => {
+  const handleNoteChange = async (content: string) => {
     if (!activeNote) return;
 
     // Update the active note content
@@ -72,6 +74,15 @@ const App: React.FC = () => {
     } else {
       const firstLine = content.split('\n')[0];
       updatedNote.title = firstLine.substring(0, 50);
+    }
+
+    // Save the file if it has a filePath
+    if (updatedNote.filePath) {
+      try {
+        await window.electronAPI.writeFile(updatedNote.filePath, content);
+      } catch (error) {
+        console.error('Error saving note:', error);
+      }
     }
 
     setActiveNote(updatedNote);
@@ -87,25 +98,45 @@ const App: React.FC = () => {
     );
   };
 
-  const handleCreateNote = (folderId: string) => {
-    const newNote: Note = {
-      id: `note-${uuidv4()}`,
-      title: 'Untitled',
-      content: '# Untitled',
-      lastModified: Date.now(),
-    };
+  const handleCreateNote = async (folderId: string) => {
+    try {
+      const folder = folders.find(f => f.id === folderId);
+      if (!folder) return;
 
-    // Add the new note to the folder
-    setFolders(prev =>
-      prev.map(folder =>
-        folder.id === folderId
-          ? { ...folder, notes: [newNote, ...folder.notes] }
-          : folder
-      )
-    );
+      // Generate a unique filename
+      const filename = `Untitled-${Date.now()}.md`;
+      const sampleBoxPath = await window.electronAPI.resolvePath('./sample-box');
+      const filePath = `${sampleBoxPath}/${filename}`;
 
-    // Set the new note as active
-    setActiveNote(newNote);
+      // Initial content
+      const content = '# Untitled';
+
+      // Save the file
+      await window.electronAPI.writeFile(filePath, content);
+      const uuid = await window.electronAPI.uuid();
+
+      const newNote: Note = {
+        id: `note-${uuid}`,
+        title: 'Untitled',
+        content,
+        lastModified: Date.now(),
+        filePath,
+      };
+
+      // Add the new note to the folder
+      setFolders(prev =>
+        prev.map(folder =>
+          folder.id === folderId
+            ? { ...folder, notes: [newNote, ...folder.notes] }
+            : folder
+        )
+      );
+
+      // Set the new note as active
+      setActiveNote(newNote);
+    } catch (error) {
+      console.error('Error creating new note:', error);
+    }
   };
 
   return (

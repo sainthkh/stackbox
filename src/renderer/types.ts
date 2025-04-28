@@ -3,10 +3,30 @@ export interface Note {
   title: string;
   content: string;
   lastModified: number;
+  filePath?: string;
 }
 
 export interface Folder {
   id: string;
   name: string;
   notes: Note[];
+}
+
+// ElectronAPI interface for TypeScript
+export interface ElectronAPI {
+  loadNotes: (directoryPath: string) => Promise<Array<{
+    filePath: string;
+    fileName: string;
+    lastModified: number;
+  }>>;
+  readFile: (filePath: string) => Promise<string>;
+  writeFile: (filePath: string, content: string) => Promise<boolean>;
+  resolvePath: (relativePath: string) => Promise<string>;
+  uuid: () => Promise<string>;
+}
+
+declare global {
+  interface Window {
+    electronAPI: ElectronAPI;
+  }
 }
