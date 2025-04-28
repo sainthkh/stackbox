@@ -1,32 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import * as fs from 'fs';
+import * as path from 'path';
 import FileExplorer from './components/FileExplorer';
 import MarkdownEditor from './components/MarkdownEditor';
 import { Note, Folder } from './types';
 
 const App: React.FC = () => {
-  // Sample initial data
-  const [folders, setFolders] = useState<Folder[]>([
-    {
-      id: 'folder-1',
-      name: 'My Notes',
-      notes: [
-        {
-          id: 'note-1',
-          title: 'Welcome to Notes',
-          content: '# Welcome to Notes\n\nThis is a markdown editor. You can use it to take notes and format them using markdown syntax.\n\n## Features\n\n- Create and organize notes\n- Format text with markdown\n- Preview your formatted notes\n\n```typescript\n// Example code block\nfunction hello() {\n  console.log("Hello, world!");\n}\n```\n\n> This is a blockquote\n\nEnjoy using Notes!',
-          lastModified: Date.now(),
-        },
-      ],
-    },
-  ]);
-
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
 
-  // Set the first note as active on load
+  // Load notes from sample-box on startup
   useEffect(() => {
-    if (folders.length > 0 && folders[0].notes.length > 0) {
-      setActiveNote(folders[0].notes[0]);
+    try {
+      const sampleBoxPath = path.resolve('./sample-box');
+      
+      // Check if directory exists
+      if (fs.existsSync(sampleBoxPath)) {
+        const files = fs.readdirSync(sampleBoxPath);
+        
+        const notes = files
+          .filter(file => file.endsWith('.md'))
+          .map(file => {
+            const filePath = path.join(sampleBoxPath, file);
+            const content = fs.readFileSync(filePath, 'utf-8');
+            
+            // Get title from filename without extension
+            const title = file.replace(/\.md$/, '');
+            
+            return {
+              id: `note-${uuidv4()}`,
+              title,
+              content,
+              lastModified: fs.statSync(filePath).mtime.getTime(),
+            };
+          });
+        
+        // Create folder with the loaded notes
+        const sampleFolder: Folder = {
+          id: 'sample-box',
+          name: 'Sample Box',
+          notes,
+        };
+        
+        setFolders([sampleFolder]);
+        
+        // Set the first note as active if available
+        if (notes.length > 0) {
+          setActiveNote(notes[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading sample notes:', error);
     }
   }, []);
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Note, Folder } from '../types';
-import { DocumentTextIcon, FolderIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, FolderIcon, PlusIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
 interface FileExplorerProps {
   folders: Folder[];
@@ -32,6 +32,10 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ folders, activeNote, onSele
               className="flex items-center px-3 py-2 text-sm cursor-pointer hover:bg-sidebar-active"
               onClick={() => toggleFolder(folder.id)}
             >
+              {expandedFolders.includes(folder.id)
+                ? <ChevronDownIcon className="h-4 w-4 mr-2" />
+                : <ChevronRightIcon className="h-4 w-4 mr-2" />
+              }
               <FolderIcon className="h-4 w-4 mr-2" />
               <span>{folder.name}</span>
               <button
@@ -50,11 +54,11 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ folders, activeNote, onSele
                 {folder.notes.map(note => (
                   <div
                     key={note.id}
-                    className={`sidebar-item ${activeNote?.id === note.id ? 'bg-sidebar-active' : ''}`}
+                    className={`flex items-center px-3 py-2 text-sm cursor-pointer hover:bg-sidebar-active ${activeNote?.id === note.id ? 'bg-sidebar-active' : ''}`}
                     onClick={() => onSelectNote(note)}
                   >
                     <DocumentTextIcon className="h-4 w-4 mr-2" />
-                    <span className="truncate">{note.title || 'Untitled'}</span>
+                    <span className="truncate flex-1">{note.title || 'Untitled'}</span>
                   </div>
                 ))}
                 {folder.notes.length === 0 && (
