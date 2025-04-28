@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Note, Folder } from '../types';
-import { DocumentTextIcon, FolderIcon, PlusIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
 interface FileExplorerProps {
   folders: Folder[];
@@ -28,31 +28,18 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ folders, activeNote, onSele
 
   return (
     <div className="h-full bg-sidebar-bg border-r border-border overflow-y-auto">
-      <div className="px-3 py-4 text-lg text-white font-medium border-b border-border">
-        Notes
-      </div>
       <div id="notes">
         {folders.map(folder => (
           <div key={folder.id}>
             <div
-              className="flex items-center px-3 py-2 text-sm cursor-pointer hover:bg-sidebar-active"
+              className="flex items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active"
               onClick={() => toggleFolder(folder.id)}
             >
               {isFolderExpanded(folder.id, expandedFolders)
                 ? <ChevronDownIcon className="h-4 w-4 mr-2" />
                 : <ChevronRightIcon className="h-4 w-4 mr-2" />
               }
-              <FolderIcon className="h-4 w-4 mr-2" />
               <span>{folder.name}</span>
-              <button
-                className="ml-auto text-text-secondary hover:text-text-primary"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCreateNote(folder.id);
-                }}
-              >
-                <PlusIcon className="h-4 w-4" />
-              </button>
             </div>
 
             {isFolderExpanded(folder.id, expandedFolders) && (
@@ -60,10 +47,9 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ folders, activeNote, onSele
                 {folder.notes.map(note => (
                   <div
                     key={note.id}
-                    className={`note-name flex items-center px-3 py-2 text-sm cursor-pointer hover:bg-sidebar-active ${activeNote?.id === note.id ? 'bg-sidebar-active' : ''}`}
+                    className={`note-name flex items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active ${activeNote?.id === note.id ? 'bg-sidebar-active' : ''}`}
                     onClick={() => onSelectNote(note)}
                   >
-                    <DocumentTextIcon className="h-4 w-4 mr-2" />
                     <span className="truncate flex-1">{note.title || 'Untitled'}</span>
                   </div>
                 ))}
