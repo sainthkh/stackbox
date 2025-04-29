@@ -5,26 +5,24 @@ import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 interface FileExplorerProps {
   folders: Folder[];
   activeNote: Note | null;
+  expandedFolders: string[];
   onSelectNote: (note: Note) => void;
   onCreateNote: (folderId: string) => void;
+  onToggleFolder: (folderId: string) => void;
 }
 
 const isFolderExpanded = (folderId: string, expandedFolders: string[]) => {
-  // TODO: save the expanded state in a more persistent way (e.g., localStorage or context)
-  // return expandedFolders.includes(folderId);
-  return true;
+  return expandedFolders.includes(folderId);
 }
 
-const FileExplorer: React.FC<FileExplorerProps> = ({ folders, activeNote, onSelectNote, onCreateNote }) => {
-  const [expandedFolders, setExpandedFolders] = useState<string[]>(folders.map(folder => folder.id));
-
-  const toggleFolder = (folderId: string) => {
-    setExpandedFolders(prev =>
-      prev.includes(folderId)
-        ? prev.filter(id => id !== folderId)
-        : [...prev, folderId]
-    );
-  };
+const FileExplorer: React.FC<FileExplorerProps> = ({
+  folders,
+  activeNote,
+  expandedFolders,
+  onSelectNote,
+  onCreateNote,
+  onToggleFolder
+}) => {
 
   return (
     <div className="h-full bg-sidebar-bg border-r border-border overflow-y-auto">
@@ -32,8 +30,8 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ folders, activeNote, onSele
         {folders.map(folder => (
           <div key={folder.id}>
             <div
-              className="flex items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active"
-              onClick={() => toggleFolder(folder.id)}
+              className="folder-name flex items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active"
+              onClick={() => onToggleFolder(folder.id)}
             >
               {isFolderExpanded(folder.id, expandedFolders)
                 ? <ChevronDownIcon className="h-4 w-4 mr-2" />

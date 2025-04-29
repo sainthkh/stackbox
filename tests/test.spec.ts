@@ -52,6 +52,26 @@ describe('test', () => {
             .filter({ hasText: 'Welcome to StackBox' })
         await note.click()
 
-        await expect(noteTitle).toHaveText('Welcome to StackBox')
+        await expect(noteTitle).toHaveValue('Welcome to StackBox')
     })
+
+    test('edit note title changes the name in the file explorer', async () => {
+        const noteTitle = await window.locator('#note-title')
+        await noteTitle.fill('New Note Title')
+
+        const note = await window.locator('.note-name')
+            .filter({ hasText: 'New Note Title' })
+
+        await expect(note).toBeVisible()
+    })
+
+    test('clicking folder name toggles folder expansion', async () => {
+        const folderName = await window.locator('.folder-name')
+            .filter({ hasText: 'Sample Box' })
+        await folderName.click()
+
+        const notes = await window.locator('.note-name')
+            .filter({ hasText: 'Welcome to StackBox' })
+        await expect(notes).not.toBeVisible()
+    });
 })

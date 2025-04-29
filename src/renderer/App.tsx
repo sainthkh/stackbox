@@ -6,6 +6,8 @@ import { Note, Folder } from './types';
 const App: React.FC = () => {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
+  const [expandedFolders, setExpandedFolders] = useState<string[]>([]);
+  const [titleValue, setTitleValue] = useState<string>('');
 
   // Load notes from sample-box on startup
   useEffect(() => {
@@ -48,7 +50,11 @@ const App: React.FC = () => {
         // Set the first note as active if available
         if (notes.length > 0) {
           setActiveNote(notes[0]);
+          setTitleValue(notes[0].title);
         }
+
+        // Set the sample folder as expanded
+        setExpandedFolders(['sample-box']);
       } catch (error) {
         console.error('Error loading sample notes:', error);
       }
@@ -59,6 +65,7 @@ const App: React.FC = () => {
 
   const handleSelectNote = (note: Note) => {
     setActiveNote(note);
+    setTitleValue(note.title);
   };
 
   const handleNoteChange = async (content: string) => {
@@ -66,15 +73,6 @@ const App: React.FC = () => {
 
     // Update the active note content
     const updatedNote = { ...activeNote, content, lastModified: Date.now() };
-
-    // Update the title based on the first line of content
-    const titleMatch = content.match(/^#\s+(.*)/);
-    if (titleMatch && titleMatch[1]) {
-      updatedNote.title = titleMatch[1].substring(0, 50);
-    } else {
-      const firstLine = content.split('\n')[0];
-      updatedNote.title = firstLine.substring(0, 50);
-    }
 
     // Save the file if it has a filePath
     if (updatedNote.filePath) {
@@ -134,8 +132,38 @@ const App: React.FC = () => {
 
       // Set the new note as active
       setActiveNote(newNote);
+      setTitleValue(newNote.title);
     } catch (error) {
       console.error('Error creating new note:', error);
+    }
+  };
+
+  const handleToggleFolder = (folderId: string) => {
+    setExpandedFolders(prev =>
+      prev.includes(folderId)
+        ? prev.filter(id => id !== folderId)
+        : [...prev, folderId]
+    );
+  };
+
+  const handleTitleChange = (value: string) => {
+    setTitleValue(value);
+
+    if (activeNote) {
+      // Update the note title
+      const updatedNote = { ...activeNote, title: value, lastModified: Date.now() };
+
+      setActiveNote(updatedNote);
+
+      // Update the note in the folders state
+      setFolders(prev =>
+        prev.map(folder => ({
+          ...folder,
+          notes: folder.notes.map(note =>
+            note.id === activeNote.id ? updatedNote : note
+          ),
+        }))
+      );
     }
   };
 
@@ -145,13 +173,17 @@ const App: React.FC = () => {
         <FileExplorer
           folders={folders}
           activeNote={activeNote}
+          expandedFolders={expandedFolders}
           onSelectNote={handleSelectNote}
           onCreateNote={handleCreateNote}
+          onToggleFolder={handleToggleFolder}
         />
       </div>
       <div className="flex-1 h-full">
         <MarkdownEditor
           note={activeNote}
+          titleValue={titleValue}
+          onTitleChange={handleTitleChange}
           onNoteChange={handleNoteChange}
         />
       </div>

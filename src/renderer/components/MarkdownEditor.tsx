@@ -3,11 +3,12 @@ import { Note } from '../types';
 
 interface MarkdownEditorProps {
   note: Note | null;
+  titleValue: string;
+  onTitleChange: (value: string) => void;
   onNoteChange: (content: string) => void;
 }
 
-const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ note, onNoteChange }) => {
-  const [titleValue, setTitleValue] = useState(note ? note.title : '');
+const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ note, titleValue, onTitleChange, onNoteChange }) => {
 
   if (!note) {
     return (
@@ -18,7 +19,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ note, onNoteChange }) =
   }
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTitleValue(e.target.value);
+    onTitleChange(e.target.value);
   };
 
   const handleTitleBlur = () => {
@@ -35,6 +36,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ note, onNoteChange }) =
     <div className="h-full flex flex-col">
       <div className="bg-black border-b border-border p-2 flex justify-between items-center">
         <input
+          id="note-title"
           type="text"
           className="bg-transparent text-base font-medium outline-none px-1 w-full"
           value={titleValue}
