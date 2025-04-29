@@ -7,6 +7,8 @@ let mainWindow: BrowserWindow | null;
 
 // Set up IPC handlers for secure file operations
 function setupIpcHandlers() {
+  const noWrite = process.argv.includes('--test-no-write');
+
   ipcMain.handle('load-notes', async (_, directoryPath) => {
     try {
       const resolvedPath = path.resolve(directoryPath);
@@ -46,6 +48,8 @@ function setupIpcHandlers() {
   });
 
   ipcMain.handle('write-file', async (_, filePath, content) => {
+    if (noWrite) return true;
+
     try {
       fs.writeFileSync(filePath, content, 'utf-8');
       return true;

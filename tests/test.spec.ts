@@ -8,7 +8,7 @@ describe('test', () => {
     let electronApp: any;
     let window: any;
     beforeEach(async () => {
-        electronApp = await electron.launch({ args: ['.'] })
+        electronApp = await electron.launch({ args: ['.', '--test-no-write'] })
         const isPackaged = await electronApp.evaluate(async ({ app }) => {
             // This runs in Electron's main process, parameter here is always
             // the result of the require('electron') in the main app script.
@@ -73,5 +73,52 @@ describe('test', () => {
         const notes = await window.locator('.note-name')
             .filter({ hasText: 'Welcome to StackBox' })
         await expect(notes).not.toBeVisible()
+    });
+
+    test('right-clicking folder shows context menu with create new note option', async () => {
+        const folderName = await window.locator('.folder-name')
+            .filter({ hasText: 'Sample Box' });
+        await folderName.click({ button: 'right' });
+
+        const createNewNoteOption = await window.locator('#create-new-note');
+        await expect(createNewNoteOption).toBeVisible();
+    });
+
+    test('creating a new note adds an "Untitled" note to the folder', async () => {
+        const folderName = await window.locator('.folder-name')
+            .filter({ hasText: 'Sample Box' });
+        await folderName.click({ button: 'right' });
+
+        const createNewNoteOption = await window.locator('#create-new-note');
+        await createNewNoteOption.click();
+
+        const newUntitled = await window.locator('.note-name')
+            .filter({ hasText: 'Untitled' });
+
+        await expect(newUntitled).toBeVisible();
+    });
+
+    test('creating multiple untitled notes increments the numbering', async () => {
+        const folderName = await window.locator('.folder-name')
+            .filter({ hasText: 'Sample Box' });
+        await folderName.click({ button: 'right' });
+        await window.locator('#create-new-note').click();
+
+        // // Add second untitled note
+        await folderName.click({ button: 'right' });
+        await window.locator('#create-new-note').click();
+
+        const newUntitled2 = await window.locator('.note-name')
+            .filter({ hasText: 'Untitled 2' });
+
+        await expect(newUntitled2).toBeVisible();
+
+        await folderName.click({ button: 'right' });
+        await window.locator('#create-new-note').click();
+
+        const newUntitled3 = await window.locator('.note-name')
+            .filter({ hasText: 'Untitled 3' });
+
+        await expect(newUntitled3).toBeVisible();
     });
 })

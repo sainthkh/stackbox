@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Note, Folder } from '../types';
+import FolderContextMenu, { FolderContextMenuData } from './FolderContextMenu';
 import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
 interface FileExplorerProps {
@@ -23,15 +24,32 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   onCreateNote,
   onToggleFolder
 }) => {
+  const [contextMenu, setContextMenu] = useState<FolderContextMenuData | null>(null);
+
+  const handleContextMenu = (e: React.MouseEvent, folderId: string) => {
+    e.preventDefault();
+    setContextMenu({
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      folderId
+    });
+  };
 
   return (
     <div className="h-full bg-sidebar-bg border-r border-border overflow-y-auto">
+      <FolderContextMenu
+        contextMenuData={contextMenu}
+        onCreateNote={onCreateNote}
+        setContextMenu={setContextMenu}
+      />
       <div id="notes">
         {folders.map(folder => (
           <div key={folder.id}>
             <div
               className="folder-name flex items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active"
               onClick={() => onToggleFolder(folder.id)}
+              onContextMenu={(e) => handleContextMenu(e, folder.id)}
             >
               {isFolderExpanded(folder.id, expandedFolders)
                 ? <ChevronDownIcon className="h-4 w-4 mr-2" />

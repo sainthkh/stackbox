@@ -101,13 +101,36 @@ const App: React.FC = () => {
       const folder = folders.find(f => f.id === folderId);
       if (!folder) return;
 
+      // Find existing untitled notes to determine name
+      const untitledNotes = folder.notes.filter(note =>
+        note.title.startsWith('Untitled') || note.title === 'Untitled'
+      );
+
+      let title = 'Untitled';
+
+      // If "Untitled" exists, find the next number.
+      // Ignore the gaps.
+      if (untitledNotes.length > 0) {
+        const numbers = untitledNotes
+          .map(note => {
+            const match = note.title.match(/^Untitled(?: (\d+))?$/);
+            return match ? (match[1] ? parseInt(match[1]) : 1) : 0;
+          })
+          .filter(num => num > 0)
+          .sort((a, b) => b - a); // Sort in descending order
+
+        let nextNumber = numbers[0] + 1;
+
+        title = `Untitled ${nextNumber}`;
+      }
+
       // Generate a unique filename
-      const filename = `Untitled-${Date.now()}.md`;
+      const filename = `${title}.md`;
       const sampleBoxPath = await window.electronAPI.resolvePath('./sample-box');
       const filePath = `${sampleBoxPath}/${filename}`;
 
       // Initial content
-      const content = '# Untitled';
+      const content = ``;
 
       // Save the file
       await window.electronAPI.writeFile(filePath, content);
@@ -115,7 +138,7 @@ const App: React.FC = () => {
 
       const newNote: Note = {
         id: `note-${uuid}`,
-        title: 'Untitled',
+        title,
         content,
         lastModified: Date.now(),
         filePath,
