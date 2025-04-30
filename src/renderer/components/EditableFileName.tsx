@@ -50,6 +50,7 @@ const EditableFileName: React.FC<EditableFileNameProps> = ({
   if (isEditing) {
     return (
       <input
+        id="editable-file-name"
         ref={inputRef}
         type="text"
         value={editedName}

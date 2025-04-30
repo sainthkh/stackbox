@@ -121,4 +121,57 @@ describe('test', () => {
 
         await expect(newUntitled3).toBeVisible();
     });
+
+    test('right-clicking note shows context menu with rename option', async () => {
+        const note = await window.locator('.note-name')
+            .filter({ hasText: 'Welcome to StackBox' });
+        await note.click({ button: 'right' });
+
+        const renameNoteOption = await window.locator('#rename-note');
+        await expect(renameNoteOption).toBeVisible();
+    });
+
+    test('pressing F2 on note opens editor', async () => {
+        const note = await window.locator('.note-name')
+            .filter({ hasText: 'Welcome to StackBox' });
+        await note.press('F2');
+
+        const noteEditor = await window.locator('#editable-file-name');
+        await expect(noteEditor).toBeVisible();
+    })
+
+    test('renaming a note updates the note title', async () => {
+        const note = await window.locator('.note-name')
+            .filter({ hasText: 'Welcome to StackBox' });
+        await note.click({ button: 'right' });
+
+        const renameNoteOption = await window.locator('#rename-note');
+        await renameNoteOption.click();
+
+        const noteTitle = await window.locator('#editable-file-name');
+        await noteTitle.fill('Renamed Note Title');
+        await noteTitle.press('Enter');
+
+        const renamedNote = await window.locator('.note-name')
+            .filter({ hasText: 'Renamed Note Title' });
+
+        await expect(renamedNote).toBeVisible();
+    });
+
+    test('renaming an active note updates the markdown editor title', async () => {
+        const note = await window.locator('.note-name')
+            .filter({ hasText: 'Test your note skill' });
+        await note.click();
+        await note.click({ button: 'right' });
+
+        const renameNoteOption = await window.locator('#rename-note');
+        await renameNoteOption.click();
+
+        const noteTitle = await window.locator('#editable-file-name');
+        await noteTitle.fill('Renamed Note Title');
+        await noteTitle.press('Enter');
+
+        const markdownEditorTitle = await window.locator('#note-title');
+        await expect(markdownEditorTitle).toHaveValue('Renamed Note Title');
+    });
 })

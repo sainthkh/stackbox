@@ -59,18 +59,6 @@ const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
           >
             Create new note
           </div>
-          {contextMenuData.noteId && onRenameNote && (
-            <div
-              id="rename-note"
-              className="px-2 py-1 text-xs cursor-pointer text-text-primary transition-colors duration-200 hover:bg-sidebar-active"
-              onClick={() => {
-                onRenameNote(contextMenuData.noteId!);
-                setContextMenu(null);
-              }}
-            >
-              Rename
-            </div>
-          )}
         </div>
       )}
     </>

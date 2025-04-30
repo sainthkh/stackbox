@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, } from 'react';
 import { Note, Folder } from '../types';
+import FolderContextMenu, { FolderContextMenuData } from './FolderContextMenu';
 import NoteContextMenu, { NoteContextMenuData } from './NoteContextMenu';
 import EditableFileName from './EditableFileName';
 import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
@@ -11,7 +12,7 @@ interface FileExplorerProps {
   onSelectNote: (note: Note) => void;
   onCreateNote: (folderId: string) => void;
   onToggleFolder: (folderId: string) => void;
-  onRenameNote?: (noteId: string, newName: string) => void;
+  onRenameNote: (noteId: string, newName: string) => void;
 }
 
 const isFolderExpanded = (folderId: string, expandedFolders: string[]) => {
@@ -27,26 +28,27 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   onToggleFolder,
   onRenameNote
 }) => {
-  const [contextMenu, setContextMenu] = useState<NoteContextMenuData | null>(null);
+  const [folderContextMenu, setFolderContextMenu] = useState<FolderContextMenuData | null>(null);
+  const [noteContextMenu, setNoteContextMenu] = useState<NoteContextMenuData | null>(null);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
   const handleFolderContextMenu = (e: React.MouseEvent, folderId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    setContextMenu({
+
+    setFolderContextMenu({
       visible: true,
       x: e.clientX,
       y: e.clientY,
       folderId
     });
   };
-  
+
   const handleNoteContextMenu = (e: React.MouseEvent, folderId: string, note: Note) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    setContextMenu({
+
+    setNoteContextMenu({
       visible: true,
       x: e.clientX,
       y: e.clientY,
@@ -54,22 +56,20 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
       noteId: note.id
     });
   };
-  
+
   const handleNoteRename = (noteId: string) => {
     setEditingNoteId(noteId);
   };
-  
+
   const handleFinishEdit = (noteId: string, newName: string) => {
-    if (onRenameNote) {
-      onRenameNote(noteId, newName);
-    }
+    onRenameNote(noteId, newName);
     setEditingNoteId(null);
   };
-  
+
   const handleCancelEdit = () => {
     setEditingNoteId(null);
   };
-  
+
   // Handle F2 key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -78,7 +78,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
         e.preventDefault();
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
@@ -87,11 +87,15 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
 
   return (
     <div className="h-full bg-sidebar-bg border-r border-border overflow-y-auto">
-      <NoteContextMenu
-        contextMenuData={contextMenu}
+      <FolderContextMenu
+        contextMenuData={folderContextMenu}
         onCreateNote={onCreateNote}
+        setContextMenu={setFolderContextMenu}
+      />
+      <NoteContextMenu
+        contextMenuData={noteContextMenu}
         onRenameNote={handleNoteRename}
-        setContextMenu={setContextMenu}
+        setContextMenu={setNoteContextMenu}
       />
       <div id="notes">
         {folders.map(folder => (

@@ -189,13 +189,13 @@ const App: React.FC = () => {
       );
     }
   };
-  
+
   const handleRenameNote = async (noteId: string, newName: string) => {
     try {
       // Find the note to rename
       let foundNote: Note | null = null;
       let foundFolder: Folder | null = null;
-      
+
       for (const folder of folders) {
         const note = folder.notes.find(n => n.id === noteId);
         if (note) {
@@ -204,17 +204,17 @@ const App: React.FC = () => {
           break;
         }
       }
-      
+
       if (!foundNote || !foundNote.filePath || !foundFolder) return;
-      
+
       // Add .md extension if not present
       const newTitle = newName.endsWith('.md') ? newName : `${newName}.md`;
       const sampleBoxPath = await window.electronAPI.resolvePath('./sample-box');
       const newFilePath = `${sampleBoxPath}/${newTitle}`;
-      
+
       // Rename the physical file
       await window.electronAPI.renameFile(foundNote.filePath, newFilePath);
-      
+
       // Update the note in state
       const updatedNote = {
         ...foundNote,
@@ -222,7 +222,7 @@ const App: React.FC = () => {
         filePath: newFilePath,
         lastModified: Date.now()
       };
-      
+
       // Update state
       setFolders(prev =>
         prev.map(folder => ({
@@ -232,7 +232,7 @@ const App: React.FC = () => {
           ),
         }))
       );
-      
+
       // Update active note if it's the one being renamed
       if (activeNote && activeNote.id === noteId) {
         setActiveNote(updatedNote);

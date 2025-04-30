@@ -10,14 +10,12 @@ export type NoteContextMenuData = {
 
 interface NoteContextMenuProps {
   contextMenuData: NoteContextMenuData | null;
-  onCreateNote: (folderId: string) => void;
-  onRenameNote?: (noteId: string) => void;
+  onRenameNote: (noteId: string) => void;
   setContextMenu: (data: NoteContextMenuData | null) => void;
 }
 
 const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
   contextMenuData,
-  onCreateNote,
   onRenameNote,
   setContextMenu,
 }) => {
@@ -37,12 +35,6 @@ const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
     };
   }, []);
 
-  const handleCreateUntitledNote = (folderId: string) => {
-    // Create the new note with the appropriate title
-    onCreateNote(folderId);
-    setContextMenu(null);
-  };
-
   return (
     <>
       {contextMenuData && contextMenuData.visible && (
@@ -52,16 +44,7 @@ const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
           className="absolute bg-sidebar-bg border border-border shadow-md rounded z-[1000] overflow-hidden min-w-[150px]"
           style={{ top: contextMenuData.y, left: contextMenuData.x }}
         >
-          {!contextMenuData.noteId && (
-            <div
-              id="create-new-note"
-              className="px-2 py-1 text-xs cursor-pointer text-text-primary transition-colors duration-200 hover:bg-sidebar-active"
-              onClick={() => handleCreateUntitledNote(contextMenuData.folderId)}
-            >
-              Create new note
-            </div>
-          )}
-          {contextMenuData.noteId && onRenameNote && (
+          {contextMenuData.noteId && (
             <div
               id="rename-note"
               className="px-2 py-1 text-xs cursor-pointer text-text-primary transition-colors duration-200 hover:bg-sidebar-active"
