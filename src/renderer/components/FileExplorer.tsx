@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Note, Folder } from '../types';
-import FolderContextMenu, { FolderContextMenuData } from './FolderContextMenu';
+import NoteContextMenu, { NoteContextMenuData } from './NoteContextMenu';
 import EditableFileName from './EditableFileName';
 import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
@@ -27,10 +27,22 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   onToggleFolder,
   onRenameNote
 }) => {
-  const [contextMenu, setContextMenu] = useState<FolderContextMenuData | null>(null);
+  const [contextMenu, setContextMenu] = useState<NoteContextMenuData | null>(null);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
-  const handleContextMenu = (e: React.MouseEvent, folderId: string, note?: Note) => {
+  const handleFolderContextMenu = (e: React.MouseEvent, folderId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setContextMenu({
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      folderId
+    });
+  };
+  
+  const handleNoteContextMenu = (e: React.MouseEvent, folderId: string, note: Note) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -39,7 +51,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
       x: e.clientX,
       y: e.clientY,
       folderId,
-      noteId: note?.id
+      noteId: note.id
     });
   };
   
@@ -75,7 +87,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
 
   return (
     <div className="h-full bg-sidebar-bg border-r border-border overflow-y-auto">
-      <FolderContextMenu
+      <NoteContextMenu
         contextMenuData={contextMenu}
         onCreateNote={onCreateNote}
         onRenameNote={handleNoteRename}
@@ -87,7 +99,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
             <div
               className="folder-name flex items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active"
               onClick={() => onToggleFolder(folder.id)}
-              onContextMenu={(e) => handleContextMenu(e, folder.id)}
+              onContextMenu={(e) => handleFolderContextMenu(e, folder.id)}
             >
               {isFolderExpanded(folder.id, expandedFolders)
                 ? <ChevronDownIcon className="h-4 w-4 mr-2" />
@@ -103,7 +115,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
                     key={note.id}
                     className={`note-name flex items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active ${activeNote?.id === note.id ? 'bg-sidebar-active' : ''}`}
                     onClick={() => onSelectNote(note)}
-                    onContextMenu={(e) => handleContextMenu(e, folder.id, note)}
+                    onContextMenu={(e) => handleNoteContextMenu(e, folder.id, note)}
                   >
                     <EditableFileName
                       name={note.title || 'Untitled'}
