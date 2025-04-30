@@ -5,17 +5,20 @@ export type FolderContextMenuData = {
   x: number;
   y: number;
   folderId: string;
+  noteId?: string;
 }
 
 interface FolderContextMenuProps {
   contextMenuData: FolderContextMenuData | null;
   onCreateNote: (folderId: string) => void;
+  onRenameNote?: (noteId: string) => void;
   setContextMenu: (data: FolderContextMenuData | null) => void;
 }
 
 const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
   contextMenuData,
   onCreateNote,
+  onRenameNote,
   setContextMenu,
 }) => {
   const contextMenuRef = useRef<HTMLDivElement>(null);
@@ -56,6 +59,18 @@ const FolderContextMenu: React.FC<FolderContextMenuProps> = ({
           >
             Create new note
           </div>
+          {contextMenuData.noteId && onRenameNote && (
+            <div
+              id="rename-note"
+              className="px-2 py-1 text-xs cursor-pointer text-text-primary transition-colors duration-200 hover:bg-sidebar-active"
+              onClick={() => {
+                onRenameNote(contextMenuData.noteId!);
+                setContextMenu(null);
+              }}
+            >
+              Rename
+            </div>
+          )}
         </div>
       )}
     </>

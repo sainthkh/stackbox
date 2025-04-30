@@ -66,6 +66,18 @@ function setupIpcHandlers() {
   ipcMain.handle('uuid', async () => {
     return uuidv4();
   });
+
+  ipcMain.handle('rename-file', async (_, oldPath, newPath) => {
+    if (noWrite) return true;
+
+    try {
+      fs.renameSync(oldPath, newPath);
+      return true;
+    } catch (error) {
+      console.error('Error renaming file:', error);
+      throw error;
+    }
+  });
 }
 
 function createWindow() {

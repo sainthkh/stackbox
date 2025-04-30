@@ -23,6 +23,7 @@ export interface ElectronAPI {
   writeFile: (filePath: string, content: string) => Promise<boolean>;
   resolvePath: (relativePath: string) => Promise<string>;
   uuid: () => Promise<string>;
+  renameFile: (oldPath: string, newPath: string) => Promise<boolean>;
 }
 
 declare global {

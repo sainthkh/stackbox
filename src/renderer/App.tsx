@@ -189,6 +189,59 @@ const App: React.FC = () => {
       );
     }
   };
+  
+  const handleRenameNote = async (noteId: string, newName: string) => {
+    try {
+      // Find the note to rename
+      let foundNote: Note | null = null;
+      let foundFolder: Folder | null = null;
+      
+      for (const folder of folders) {
+        const note = folder.notes.find(n => n.id === noteId);
+        if (note) {
+          foundNote = note;
+          foundFolder = folder;
+          break;
+        }
+      }
+      
+      if (!foundNote || !foundNote.filePath || !foundFolder) return;
+      
+      // Add .md extension if not present
+      const newTitle = newName.endsWith('.md') ? newName : `${newName}.md`;
+      const sampleBoxPath = await window.electronAPI.resolvePath('./sample-box');
+      const newFilePath = `${sampleBoxPath}/${newTitle}`;
+      
+      // Rename the physical file
+      await window.electronAPI.renameFile(foundNote.filePath, newFilePath);
+      
+      // Update the note in state
+      const updatedNote = {
+        ...foundNote,
+        title: newName, // Keep the title without .md extension for display
+        filePath: newFilePath,
+        lastModified: Date.now()
+      };
+      
+      // Update state
+      setFolders(prev =>
+        prev.map(folder => ({
+          ...folder,
+          notes: folder.notes.map(note =>
+            note.id === noteId ? updatedNote : note
+          ),
+        }))
+      );
+      
+      // Update active note if it's the one being renamed
+      if (activeNote && activeNote.id === noteId) {
+        setActiveNote(updatedNote);
+        setTitleValue(updatedNote.title);
+      }
+    } catch (error) {
+      console.error('Error renaming file:', error);
+    }
+  };
 
   return (
     <div className="flex h-screen">
@@ -200,6 +253,7 @@ const App: React.FC = () => {
           onSelectNote={handleSelectNote}
           onCreateNote={handleCreateNote}
           onToggleFolder={handleToggleFolder}
+          onRenameNote={handleRenameNote}
         />
       </div>
       <div className="flex-1 h-full">

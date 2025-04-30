@@ -11,4 +11,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Path operations
   resolvePath: (relativePath: string) => ipcRenderer.invoke('resolve-path', relativePath),
   uuid: () => ipcRenderer.invoke('uuid'),
+  renameFile: (oldPath: string, newPath: string) => ipcRenderer.invoke('rename-file', oldPath, newPath),
 });
