@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import FileExplorer from './components/FileExplorer';
 import MarkdownEditor from './components/MarkdownEditor';
-import { Note, Folder } from './types';
+import { Note, Folder } from './redux/notesSlice';
+import { useAppDispatch, useAppSelector } from './redux/hooks';
+import {
+  setFolders,
+  setActiveNote,
+  setExpandedFolders,
+  setTitleValue,
+  toggleExpandedFolder,
+  updateNote,
+  addNoteToFolder
+} from './redux/notesSlice';
 
 const App: React.FC = () => {
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [activeNote, setActiveNote] = useState<Note | null>(null);
-  const [expandedFolders, setExpandedFolders] = useState<string[]>([]);
-  const [titleValue, setTitleValue] = useState<string>('');
+  const dispatch = useAppDispatch();
+  const { folders, activeNote, expandedFolders, titleValue } = useAppSelector(state => state.notes);
 
   // Load notes from sample-box on startup
   useEffect(() => {
@@ -45,27 +53,27 @@ const App: React.FC = () => {
           notes,
         };
 
-        setFolders([sampleFolder]);
+        dispatch(setFolders([sampleFolder]));
 
         // Set the first note as active if available
         if (notes.length > 0) {
-          setActiveNote(notes[0]);
-          setTitleValue(notes[0].title);
+          dispatch(setActiveNote(notes[0]));
+          dispatch(setTitleValue(notes[0].title));
         }
 
         // Set the sample folder as expanded
-        setExpandedFolders(['sample-box']);
+        dispatch(setExpandedFolders(['sample-box']));
       } catch (error) {
         console.error('Error loading sample notes:', error);
       }
     };
 
     loadSampleNotes();
-  }, []);
+  }, [dispatch]);
 
   const handleSelectNote = (note: Note) => {
-    setActiveNote(note);
-    setTitleValue(note.title);
+    dispatch(setActiveNote(note));
+    dispatch(setTitleValue(note.title));
   };
 
   const handleNoteChange = async (content: string) => {
@@ -83,17 +91,10 @@ const App: React.FC = () => {
       }
     }
 
-    setActiveNote(updatedNote);
-
-    // Update the note in the folders state
-    setFolders(prev =>
-      prev.map(folder => ({
-        ...folder,
-        notes: folder.notes.map(note =>
-          note.id === activeNote.id ? updatedNote : note
-        ),
-      }))
-    );
+    dispatch(updateNote({
+      noteId: activeNote.id,
+      updates: { content, lastModified: Date.now() }
+    }));
   };
 
   const handleCreateNote = async (folderId: string) => {
@@ -145,48 +146,29 @@ const App: React.FC = () => {
       };
 
       // Add the new note to the folder
-      setFolders(prev =>
-        prev.map(folder =>
-          folder.id === folderId
-            ? { ...folder, notes: [newNote, ...folder.notes] }
-            : folder
-        )
-      );
+      dispatch(addNoteToFolder({ folderId, note: newNote }));
 
       // Set the new note as active
-      setActiveNote(newNote);
-      setTitleValue(newNote.title);
+      dispatch(setActiveNote(newNote));
+      dispatch(setTitleValue(newNote.title));
     } catch (error) {
       console.error('Error creating new note:', error);
     }
   };
 
   const handleToggleFolder = (folderId: string) => {
-    setExpandedFolders(prev =>
-      prev.includes(folderId)
-        ? prev.filter(id => id !== folderId)
-        : [...prev, folderId]
-    );
+    dispatch(toggleExpandedFolder(folderId));
   };
 
   const handleTitleChange = (value: string) => {
-    setTitleValue(value);
+    dispatch(setTitleValue(value));
 
     if (activeNote) {
       // Update the note title
-      const updatedNote = { ...activeNote, title: value, lastModified: Date.now() };
-
-      setActiveNote(updatedNote);
-
-      // Update the note in the folders state
-      setFolders(prev =>
-        prev.map(folder => ({
-          ...folder,
-          notes: folder.notes.map(note =>
-            note.id === activeNote.id ? updatedNote : note
-          ),
-        }))
-      );
+      dispatch(updateNote({
+        noteId: activeNote.id,
+        updates: { title: value, lastModified: Date.now() }
+      }));
     }
   };
 
@@ -216,27 +198,18 @@ const App: React.FC = () => {
       await window.electronAPI.renameFile(foundNote.filePath, newFilePath);
 
       // Update the note in state
-      const updatedNote = {
-        ...foundNote,
-        title: newName, // Keep the title without .md extension for display
-        filePath: newFilePath,
-        lastModified: Date.now()
-      };
+      dispatch(updateNote({
+        noteId: noteId,
+        updates: {
+          title: newName, // Keep the title without .md extension for display
+          filePath: newFilePath,
+          lastModified: Date.now()
+        }
+      }));
 
-      // Update state
-      setFolders(prev =>
-        prev.map(folder => ({
-          ...folder,
-          notes: folder.notes.map(note =>
-            note.id === noteId ? updatedNote : note
-          ),
-        }))
-      );
-
-      // Update active note if it's the one being renamed
+      // Update title value if it's the active note
       if (activeNote && activeNote.id === noteId) {
-        setActiveNote(updatedNote);
-        setTitleValue(updatedNote.title);
+        dispatch(setTitleValue(newName));
       }
     } catch (error) {
       console.error('Error renaming file:', error);

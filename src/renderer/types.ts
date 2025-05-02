@@ -1,17 +1,3 @@
-export interface Note {
-  id: string;
-  title: string;
-  content: string;
-  lastModified: number;
-  filePath?: string;
-}
-
-export interface Folder {
-  id: string;
-  name: string;
-  notes: Note[];
-}
-
 // ElectronAPI interface for TypeScript
 export interface ElectronAPI {
   loadNotes: (directoryPath: string) => Promise<Array<{
