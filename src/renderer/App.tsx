@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import FileExplorer from './components/FileExplorer';
 import MarkdownEditor from './components/MarkdownEditor';
-import { Note, Folder } from './redux/notesSlice';
+import { Note, Folder } from './redux/o-notesSlice';
 import { useAppDispatch, useAppSelector } from './redux/hooks';
 import {
   setFolders,
@@ -11,11 +11,11 @@ import {
   toggleExpandedFolder,
   updateNote,
   addNoteToFolder
-} from './redux/notesSlice';
+} from './redux/o-notesSlice';
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { folders, activeNote, expandedFolders, titleValue } = useAppSelector(state => state.notes);
+  const { folders, activeNote, expandedFolders, titleValue } = useAppSelector(state => state.onotes);
 
   // Load notes from sample-box on startup
   useEffect(() => {

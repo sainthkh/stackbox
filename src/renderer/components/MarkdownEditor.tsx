@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Note } from '../redux/notesSlice'
+import { Note } from '../redux/o-notesSlice'
 
 interface MarkdownEditorProps {
   note: Note | null;

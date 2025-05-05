@@ -29,7 +29,7 @@ const initialState: NotesState = {
 };
 
 export const notesSlice = createSlice({
-  name: 'notes',
+  name: 'onotes',
   initialState,
   reducers: {
     setFolders: (state, action: PayloadAction<Folder[]>) => {
