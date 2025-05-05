@@ -1,5 +1,5 @@
 import React, { useState, useEffect, } from 'react';
-import { Note, Folder } from '../types';
+import { Note, Folder } from '../redux/notesSlice';
 import FolderContextMenu, { FolderContextMenuData } from './FolderContextMenu';
 import NoteContextMenu, { NoteContextMenuData } from './NoteContextMenu';
 import EditableFileName from './EditableFileName';

@@ -19,8 +19,12 @@ const App: React.FC = () => {
 
   // Load notes from sample-box on startup
   useEffect(() => {
-    const loadSampleNotes = async () => {
+    const startup = async () => {
       try {
+        const startupData = await window.electronAPI.startup();
+
+        console.log('Startup data:', startupData);
+
         // Resolve the sample-box path
         const sampleBoxPath = await window.electronAPI.resolvePath('./sample-box');
 
@@ -68,7 +72,7 @@ const App: React.FC = () => {
       }
     };
 
-    loadSampleNotes();
+    startup();
   }, [dispatch]);
 
   const handleSelectNote = (note: Note) => {

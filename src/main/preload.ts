@@ -3,6 +3,8 @@ import { contextBridge, ipcRenderer } from 'electron';
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {
+  startup: () => ipcRenderer.invoke('startup'),
+
   // File system operations
   loadNotes: (directoryPath: string) => ipcRenderer.invoke('load-notes', directoryPath),
   readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),

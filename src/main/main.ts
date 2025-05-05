@@ -1,13 +1,110 @@
 import { app, BrowserWindow, nativeTheme, ipcMain } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
+import { readFile, writeFile, access, readdir, mkdir, stat } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
+import { FilePath, StartupData, OpenedNote, FeBox, FeFolder, FeNote } from './api';
 
 let mainWindow: BrowserWindow | null;
+
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await access(filePath, fs.constants.F_OK);
+    return true;
+  }
+  catch (error) {
+    return false;
+  }
+}
+
+interface BoxConfig {
+  expandedFolders: FilePath[];
+  openedNotes: FilePath[];
+}
 
 // Set up IPC handlers for secure file operations
 function setupIpcHandlers() {
   const noWrite = process.argv.includes('--test-no-write');
+
+  ipcMain.handle('startup', async () => {
+    const userDataPath = app.getPath('userData');
+
+    const settingsPath = path.join(userDataPath, 'settings.json');
+
+    const settingsExists = await fileExists(settingsPath);
+    if (!settingsExists) {
+      await writeFile(settingsPath, JSON.stringify({}), 'utf-8');
+    }
+
+    const settingsJson = await readFile(settingsPath, 'utf-8');
+    const settings = JSON.parse(settingsJson);
+
+    // TODO: if lastBoxPath does not exist, we should show welcome screen
+    const lastBoxPath = settings.lastBoxPath || path.resolve('./sample-box');
+    const rootPath: FilePath = lastBoxPath.split(path.sep) as FilePath;
+
+    const boxConfigPath = path.join(lastBoxPath, '.stackbox', 'config.json');
+    const boxConfigExists = await fileExists(boxConfigPath);
+    if (!boxConfigExists) {
+      await mkdir(path.dirname(boxConfigPath), { recursive: true });
+      await writeFile(boxConfigPath, JSON.stringify({}), 'utf-8');
+    }
+
+    const boxConfigJson = await readFile(boxConfigPath, 'utf-8');
+    const boxConfig: BoxConfig = JSON.parse(boxConfigJson);
+
+    const box: FeBox = {
+      path: rootPath,
+      name: path.basename(lastBoxPath),
+      items: [],
+    };
+
+    const files = await readdir(lastBoxPath, { withFileTypes: true });
+
+    for (const file of files) {
+      if (file.isDirectory()) {
+        box.items.push({
+          path: [file.name],
+          name: file.name,
+          expanded: false,
+          items: [],
+        } as FeFolder);
+      }
+      else {
+        box.items.push({
+          path: [file.name],
+          name: file.name,
+        } as FeNote);
+      }
+    }
+
+    const openedNotes: OpenedNote[] = [];
+
+    for (const notePath of [['Welcome to StackBox.md']]) {
+      const noteFilePath = path.join(lastBoxPath, ...notePath);
+      const noteExists = await fileExists(noteFilePath);
+      if (!noteExists) {
+        continue;
+      }
+
+      if (noteExists) {
+        const content = await readFile(noteFilePath, 'utf-8');
+        const stats = await stat(noteFilePath);
+
+        openedNotes.push({
+          path: notePath,
+          name: notePath[notePath.length - 1],
+          content,
+          lastModified: stats.mtime.getTime(),
+        } as OpenedNote);
+      }
+    }
+
+    return {
+      box,
+      openedNotes,
+    } as StartupData;
+  })
 
   ipcMain.handle('load-notes', async (_, directoryPath) => {
     try {
