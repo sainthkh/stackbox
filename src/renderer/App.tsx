@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import FileExplorer from './components/FileExplorer';
+import NoteExplorer from './components/NoteExplorer/NoteExplorer';
 import MarkdownEditor from './components/MarkdownEditor';
 import { Note, Folder } from './redux/o-notesSlice';
 import { useAppDispatch, useAppSelector } from './redux/hooks';
@@ -12,6 +12,9 @@ import {
   updateNote,
   addNoteToFolder
 } from './redux/o-notesSlice';
+import {
+  initialize,
+} from './redux/boxSlice';
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -22,8 +25,7 @@ const App: React.FC = () => {
     const startup = async () => {
       try {
         const startupData = await window.electronAPI.startup();
-
-        console.log('Startup data:', startupData);
+        dispatch(initialize(startupData));
 
         // Resolve the sample-box path
         const sampleBoxPath = await window.electronAPI.resolvePath('./sample-box');
@@ -223,15 +225,7 @@ const App: React.FC = () => {
   return (
     <div className="flex h-screen">
       <div className="w-64 h-full">
-        <FileExplorer
-          folders={folders}
-          activeNote={activeNote}
-          expandedFolders={expandedFolders}
-          onSelectNote={handleSelectNote}
-          onCreateNote={handleCreateNote}
-          onToggleFolder={handleToggleFolder}
-          onRenameNote={handleRenameNote}
-        />
+        <NoteExplorer />
       </div>
       <div className="flex-1 h-full">
         <MarkdownEditor

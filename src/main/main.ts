@@ -3,9 +3,11 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { readFile, writeFile, access, readdir, mkdir, stat } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
-import { FilePath, StartupData, OpenedNote, FeBox, FeFolder, FeNote } from './api';
+import { FilePath } from '../types';
+import { StartupData, OpenedNote, SavedBox, SavedItem, SavedFolder, SavedNote } from './api';
 
 let mainWindow: BrowserWindow | null;
+let boxPath: string;
 
 async function fileExists(filePath: string): Promise<boolean> {
   try {
@@ -40,10 +42,10 @@ function setupIpcHandlers() {
     const settings = JSON.parse(settingsJson);
 
     // TODO: if lastBoxPath does not exist, we should show welcome screen
-    const lastBoxPath = settings.lastBoxPath || path.resolve('./sample-box');
-    const rootPath: FilePath = lastBoxPath.split(path.sep) as FilePath;
+    boxPath = settings.lastBoxPath || path.resolve('./sample-box');
+    const rootPath: FilePath = boxPath.split(path.sep) as FilePath;
 
-    const boxConfigPath = path.join(lastBoxPath, '.stackbox', 'config.json');
+    const boxConfigPath = path.join(boxPath, '.stackbox', 'config.json');
     const boxConfigExists = await fileExists(boxConfigPath);
     if (!boxConfigExists) {
       await mkdir(path.dirname(boxConfigPath), { recursive: true });
@@ -53,49 +55,47 @@ function setupIpcHandlers() {
     const boxConfigJson = await readFile(boxConfigPath, 'utf-8');
     const boxConfig: BoxConfig = JSON.parse(boxConfigJson);
 
-    const box: FeBox = {
+    const box: SavedBox = {
       path: rootPath,
-      name: path.basename(lastBoxPath),
       items: [],
     };
 
-    const files = await readdir(lastBoxPath, { withFileTypes: true });
+    const files = await readdir(boxPath, { withFileTypes: true });
 
     for (const file of files) {
       if (file.isDirectory()) {
+        // Skip hidden directories
+        if (file.name.startsWith('.')) {
+          continue;
+        }
+
         box.items.push({
+          type: 'folder',
           path: [file.name],
-          name: file.name,
           expanded: false,
           items: [],
-        } as FeFolder);
+        } as SavedFolder);
       }
       else {
         box.items.push({
+          type: 'note',
           path: [file.name],
-          name: file.name,
-        } as FeNote);
+        } as SavedNote);
       }
     }
 
     const openedNotes: OpenedNote[] = [];
 
     for (const notePath of [['Welcome to StackBox.md']]) {
-      const noteFilePath = path.join(lastBoxPath, ...notePath);
+      const noteFilePath = path.join(boxPath, ...notePath);
       const noteExists = await fileExists(noteFilePath);
       if (!noteExists) {
         continue;
       }
 
       if (noteExists) {
-        const content = await readFile(noteFilePath, 'utf-8');
-        const stats = await stat(noteFilePath);
-
         openedNotes.push({
           path: notePath,
-          name: notePath[notePath.length - 1],
-          content,
-          lastModified: stats.mtime.getTime(),
         } as OpenedNote);
       }
     }
@@ -104,6 +104,38 @@ function setupIpcHandlers() {
       box,
       openedNotes,
     } as StartupData;
+  })
+
+  ipcMain.handle('load-folder', async (_, folderPath) => {
+    const p = folderPath.join(path.sep);
+    const fp = path.join(boxPath, p);
+
+    const items: SavedItem[] = [];
+    const files = await readdir(fp, { withFileTypes: true });
+
+    for (const file of files) {
+      if (file.isDirectory()) {
+        // Skip hidden directories
+        if (file.name.startsWith('.')) {
+          continue;
+        }
+
+        items.push({
+          type: 'folder',
+          path: [...folderPath, file.name],
+          expanded: false,
+          items: [],
+        } as SavedFolder);
+      }
+      else {
+        items.push({
+          type: 'note',
+          path: [...folderPath, file.name],
+        } as SavedNote);
+      }
+    }
+
+    return items;
   })
 
   ipcMain.handle('load-notes', async (_, directoryPath) => {

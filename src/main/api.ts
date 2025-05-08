@@ -1,41 +1,40 @@
-export type FilePath = string[];
+import { FilePath } from '../types';
 
 // TODO: decide if this is the right place for these note types.
-export type FeItem = FeNote | FeFolder;
+export type SavedItem = SavedNote | SavedFolder;
+export type SavedItemType = 'note' | 'folder';
 
-export type FeBox = {
+export type SavedBox = {
   path: FilePath;
-  name: string;
-  items: FeItem[];
+  items: SavedItem[];
 }
 
-export type FeNote = {
+export type SavedNote = {
+  type: 'note';
   path: FilePath;
-  name: string;
 }
 
-export type FeFolder = {
+export type SavedFolder = {
+  type: 'folder';
   path: FilePath;
-  name: string;
   expanded: boolean;
-  items: FeItem[];
+  items: SavedItem[];
 }
 
 export type OpenedNote = {
   path: FilePath;
-  name: string;
-  content: string;
-  lastModified: number;
 }
 
 export interface StartupData {
-  box: FeBox;
+  box: SavedBox;
   openedNotes: OpenedNote[];
 }
 
 // ElectronAPI interface for TypeScript
 export interface ElectronAPI {
   startup: () => Promise<StartupData>;
+  loadFolder: (folderPath: FilePath) => Promise<SavedItem[]>;
+
   loadNotes: (directoryPath: string) => Promise<Array<{
     filePath: string;
     fileName: string;

@@ -4,6 +4,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {
   startup: () => ipcRenderer.invoke('startup'),
+  loadFolder: (folderPath: string) => ipcRenderer.invoke('load-folder', folderPath),
 
   // File system operations
   loadNotes: (directoryPath: string) => ipcRenderer.invoke('load-notes', directoryPath),
