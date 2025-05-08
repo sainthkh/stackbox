@@ -13,10 +13,16 @@ const NeFolder: React.FC<NeFolderProps> = ({ folder }) => {
 
   const name = folder.path[folder.path.length - 1];
 
+  const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    dispatch(toggleFolder(folder.path));
+  }
+
   return (
     <div
       className={`folder-name items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active`}
-      onClick={() => dispatch(toggleFolder(folder.path))}
+      onClick={onClick}
     >
       <div className="flex">
         {folder.expanded

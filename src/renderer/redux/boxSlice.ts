@@ -83,7 +83,7 @@ const toggleFolderExpanded = (items: NeItem[], payload: ToggleFolderPayload, lev
     const item = items[i];
     if (item.type === 'folder') {
       if (item.path[level] === folderPath[level]) {
-        if ((item.path.length - 1) === level) {
+        if ((folderPath.length - 1) === level) {
           item.expanded = !item.expanded;
           item.items = convertFolderItems(payload.items);
         } else {
