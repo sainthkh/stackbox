@@ -34,6 +34,7 @@ export interface StartupData {
 export interface ElectronAPI {
   startup: () => Promise<StartupData>;
   loadFolder: (folderPath: FilePath) => Promise<SavedItem[]>;
+  renameNote: (oldPath: FilePath, newName: string) => Promise<boolean>;
 
   loadNotes: (directoryPath: string) => Promise<Array<{
     filePath: string;

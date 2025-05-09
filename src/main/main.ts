@@ -1,7 +1,7 @@
 import { app, BrowserWindow, nativeTheme, ipcMain } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
-import { readFile, writeFile, access, readdir, mkdir, stat } from 'fs/promises';
+import { readFile, writeFile, access, readdir, mkdir, stat, rename } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 import { FilePath } from '../types';
 import { StartupData, OpenedNote, SavedBox, SavedItem, SavedFolder, SavedNote } from './api';
@@ -136,6 +136,22 @@ function setupIpcHandlers() {
     }
 
     return items;
+  })
+
+  ipcMain.handle('rename-note', async (_, notePath, newName) => {
+    if (noWrite) return true;
+
+    const oldPath = path.join(boxPath, notePath.join(path.sep));
+    const newPath = path.join(boxPath, notePath.slice(0, -1).join(path.sep), `${newName}.md`);
+
+    const noteExists = await fileExists(oldPath);
+    if (!noteExists) {
+      throw new Error(`Note does not exist: ${oldPath}`);
+    }
+    else {
+      await rename(oldPath, newPath);
+      return true;
+    }
   })
 
   ipcMain.handle('load-notes', async (_, directoryPath) => {

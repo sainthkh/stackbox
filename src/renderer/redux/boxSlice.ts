@@ -29,6 +29,11 @@ export type ToggleFolderPayload = {
   items: SavedItem[];
 }
 
+export type RenameNotePayload = {
+  notePath: FilePath;
+  newName: string;
+}
+
 export interface BoxState {
   noteTree: NoteExplorerTree;
   activeNote: NeNote | null;
@@ -94,6 +99,24 @@ const toggleFolderExpanded = (items: NeItem[], payload: ToggleFolderPayload, lev
   }
 }
 
+const findAndRenameNote = (items: NeItem[], level: number, payload: RenameNotePayload) => {
+  const notePath = payload.notePath;
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+
+    if (level !== notePath.length - 1) {
+      if (item.type === 'folder' && item.path[level] === notePath[level]) {
+        findAndRenameNote(item.items, level + 1, payload);
+      }
+    } else {
+      if (item.type === 'note' && item.path[level] === notePath[level]) {
+        item.path[item.path.length - 1] = `${payload.newName}.md`;
+      }
+    }
+  }
+}
+
 export const noteName = (note: NeNote): string => {
   const nameWithExtension = note.path[note.path.length - 1];
   return nameWithExtension.split('.').slice(0, -1).join('.') || nameWithExtension;
@@ -113,11 +136,25 @@ export const boxSlice = createSlice({
 
     toggleFolderInternal(state, action: PayloadAction<ToggleFolderPayload>) {
       toggleFolderExpanded(state.noteTree.items, action.payload, 0);
-    }
+    },
+
+    renameNoteInternal(state, action: PayloadAction<RenameNotePayload>) {
+      findAndRenameNote(state.noteTree.items, 0, action.payload);
+    },
   },
 })
 
-const { toggleFolderInternal } = boxSlice.actions;
+// Simple Actions
+export const {
+  initialize,
+} = boxSlice.actions
+
+
+// Thunks
+const {
+  toggleFolderInternal,
+  renameNoteInternal,
+} = boxSlice.actions;
 
 export const toggleFolder = (folderPath: FilePath) =>
   async (dispatch: any) => {
@@ -129,8 +166,14 @@ export const toggleFolder = (folderPath: FilePath) =>
     }));
   }
 
-export const {
-  initialize,
-} = boxSlice.actions
+export const renameNote = (notePath: FilePath, newName: string) =>
+  async (dispatch: any) => {
+    await window.electronAPI.renameNote(notePath, newName);
+
+    dispatch(renameNoteInternal({
+      notePath,
+      newName,
+    }));
+  }
 
 export default boxSlice.reducer
