@@ -1,7 +1,7 @@
 import React, { useState, useEffect, } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import NoteContextMenu, { NoteContext } from './NoteContextMenu';
-import { type NeNote } from '../../redux/boxSlice';
+import { type NeNote, noteName } from '../../redux/boxSlice';
 
 export interface NeNoteProps {
   note: NeNote;
@@ -11,8 +11,6 @@ const NeNote: React.FC<NeNoteProps> = ({ note }) => {
   const [editing, setEditing] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  const name = note.path[note.path.length - 1];
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -44,7 +42,7 @@ const NeNote: React.FC<NeNoteProps> = ({ note }) => {
       {editing ? (
         <span>editing</span>
       ) : (
-        <span className="text-xs text-text-primary">{name}</span>
+        <span className="text-xs text-text-primary">{noteName(note)}</span>
       )}
     </div>
   )

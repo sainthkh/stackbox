@@ -94,6 +94,11 @@ const toggleFolderExpanded = (items: NeItem[], payload: ToggleFolderPayload, lev
   }
 }
 
+export const noteName = (note: NeNote): string => {
+  const nameWithExtension = note.path[note.path.length - 1];
+  return nameWithExtension.split('.').slice(0, -1).join('.') || nameWithExtension;
+}
+
 export const boxSlice = createSlice({
   name: 'box',
   initialState,
