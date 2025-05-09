@@ -1,7 +1,6 @@
 import React, { useState, useEffect, } from 'react';
 import { Note, Folder } from '../redux/o-notesSlice';
 import FolderContextMenu, { FolderContextMenuData } from './FolderContextMenu';
-import NoteContextMenu, { NoteContextMenuData } from './NoteContextMenu';
 import EditableFileName from './EditableFileName';
 import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
@@ -29,7 +28,6 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   onRenameNote
 }) => {
   const [folderContextMenu, setFolderContextMenu] = useState<FolderContextMenuData | null>(null);
-  const [noteContextMenu, setNoteContextMenu] = useState<NoteContextMenuData | null>(null);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
   const handleFolderContextMenu = (e: React.MouseEvent, folderId: string) => {
@@ -47,14 +45,6 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   const handleNoteContextMenu = (e: React.MouseEvent, folderId: string, note: Note) => {
     e.preventDefault();
     e.stopPropagation();
-
-    setNoteContextMenu({
-      visible: true,
-      x: e.clientX,
-      y: e.clientY,
-      folderId,
-      noteId: note.id
-    });
   };
 
   const handleNoteRename = (noteId: string) => {
@@ -91,11 +81,6 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
         contextMenuData={folderContextMenu}
         onCreateNote={onCreateNote}
         setContextMenu={setFolderContextMenu}
-      />
-      <NoteContextMenu
-        contextMenuData={noteContextMenu}
-        onRenameNote={handleNoteRename}
-        setContextMenu={setNoteContextMenu}
       />
       <div id="notes">
         {folders.map(folder => (
