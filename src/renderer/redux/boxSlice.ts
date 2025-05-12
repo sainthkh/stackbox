@@ -57,9 +57,9 @@ export type CancelTBANotePayload = {
   notePath: FilePath;
 }
 
-type AddNeTBANoteProps = {
+export type TBANoteToNotePayload = {
   notePath: FilePath;
-  initialName: string;
+  finalizedPath: FilePath;
 }
 
 export interface BoxState {
@@ -196,6 +196,18 @@ export const boxSlice = createSlice({
       toggleFolderExpanded(state.noteTree.items, action.payload, 0);
     },
 
+    tbaNoteToNoteInternal(state, action: PayloadAction<TBANoteToNotePayload>) {
+      findNote(state.noteTree.items, 0, action.payload,
+        (items, index, props) => {
+          items[index] = {
+            type: 'note',
+            id: generateId(),
+            path: props.finalizedPath,
+          } as NeNote
+        }
+      )
+    },
+
     renameNoteInternal(state, action: PayloadAction<RenameNotePayload>) {
       findNote(state.noteTree.items, 0, action.payload,
         (items, index, props) => {
@@ -218,6 +230,7 @@ export const {
 // Thunks
 const {
   toggleFolderInternal,
+  tbaNoteToNoteInternal,
   renameNoteInternal,
 } = boxSlice.actions;
 
@@ -239,6 +252,18 @@ export const renameNote = (notePath: FilePath, newName: string) =>
       notePath,
       newName,
     }));
+  }
+
+export const saveTBANote = (notePath: FilePath, noteName: string) =>
+  async (dispatch: any) => {
+    const p = [...notePath.slice(0, -1), `${noteName}.md`]
+
+    await window.electronAPI.createNewNote(p)
+
+    dispatch(tbaNoteToNoteInternal({
+      notePath,
+      finalizedPath: p,
+    }))
   }
 
 // Utilities

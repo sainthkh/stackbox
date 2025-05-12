@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   startup: () => ipcRenderer.invoke('startup'),
   loadFolder: (folderPath: string) => ipcRenderer.invoke('load-folder', folderPath),
   renameNote: (oldPath: FilePath, newName: string) => ipcRenderer.invoke('rename-note', oldPath, newName),
+  createNewNote: (notePath: FilePath) => ipcRenderer.invoke('create-new-note', notePath),
 
   // File system operations
   loadNotes: (directoryPath: string) => ipcRenderer.invoke('load-notes', directoryPath),

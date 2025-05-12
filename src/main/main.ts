@@ -154,6 +154,22 @@ function setupIpcHandlers() {
     }
   })
 
+  ipcMain.handle('create-new-note', async (_, notePath) => {
+    if (noWrite) return true;
+
+    const filePath = path.join(boxPath, notePath.join(path.sep))
+
+    try {
+      await writeFile(filePath, '', 'utf-8');
+      return true;
+    } catch (error) {
+      console.error('Error writing file:', error);
+      throw error;
+    }
+  })
+
+  /////////////////////////////////////////////////////////
+
   ipcMain.handle('load-notes', async (_, directoryPath) => {
     try {
       const resolvedPath = path.resolve(directoryPath);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppDispatch } from '../../redux/hooks';
-import { NeTBANote, noteName, cancelTBANote } from '../../redux/boxSlice';
+import { NeTBANote, noteName, saveTBANote, cancelTBANote } from '../../redux/boxSlice';
 import EditableNoteName from './EditableNoteName';
 
 export interface NeTBANoteProps {
@@ -13,7 +13,7 @@ const NeTBANote: React.FC<NeTBANoteProps> = ({
   const dispatch = useAppDispatch();
 
   const onFinishEdit = (newName: string) => {
-
+    dispatch(saveTBANote(tbaNote.path, newName))
   }
 
   const onCancelEdit = () => {
