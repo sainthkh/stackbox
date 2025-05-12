@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { type NeFolder, toggleFolder } from '../../redux/boxSlice';
 import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import NeNote from './NeNote';
+import NeTBANote from './NeTBANote';
 
 export interface NeFolderProps {
   folder: NeFolder;
@@ -37,6 +38,8 @@ const NeFolder: React.FC<NeFolderProps> = ({ folder }) => {
               return <NeFolder key={item.id} folder={item} />;
             } else if (item.type === 'note') {
               return <NeNote key={item.id} note={item} />;
+            } else if (item.type === 'tba-note') {
+              return <NeTBANote key={item.id} tbaNote={item} />;
             }
           })
         )}

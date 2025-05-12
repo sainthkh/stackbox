@@ -1,8 +1,8 @@
 import React, { useState, useEffect, } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
-import NoteContextMenu, { NoteContext } from './NoteContextMenu';
+import NoteContextMenu, { NoteContextCommand } from './NoteContextMenu';
 import EditableNoteName from './EditableNoteName';
-import { type NeNote, noteName, renameNote } from '../../redux/boxSlice';
+import { type NeNote, noteName, renameNote, addTBANote } from '../../redux/boxSlice';
 
 export interface NeNoteProps {
   note: NeNote;
@@ -22,10 +22,22 @@ const NeNote: React.FC<NeNoteProps> = ({ note }) => {
     setMousePosition({ x: e.clientX, y: e.clientY });
   };
 
-  const doMenu = (menu: NoteContext) => {
+  const doMenu = (menu: NoteContextCommand) => {
     switch (menu) {
       case 'rename': {
         setEditing(true);
+        break;
+      }
+      case 'subsequent': {
+        break;
+      }
+      case 'branch-out': {
+        dispatch(addTBANote({
+          notePath: note.path,
+        }));
+        break;
+      }
+      case 'next-topic': {
         break;
       }
     }

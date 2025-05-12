@@ -2,8 +2,17 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { FilePath } from '../../types'
 import { StartupData, SavedNote, SavedFolder, SavedItem } from 'src/main/api';
 
-export type NeItem = NeNote | NeFolder;
-export type NeItemType = 'note' | 'folder';
+export type NeItem =
+  | NeNote
+  | NeTBANote
+  | NeFolder
+  ;
+
+export type NeItemType =
+  | 'note'
+  | 'tba-note'
+  | 'folder'
+  ;
 
 export type NoteExplorerTree = {
   name: string;
@@ -12,6 +21,12 @@ export type NoteExplorerTree = {
 
 export type NeNote = {
   type: 'note';
+  id: number;
+  path: FilePath;
+}
+
+export type NeTBANote = {
+  type: 'tba-note';
   id: number;
   path: FilePath;
 }
@@ -32,6 +47,15 @@ export type ToggleFolderPayload = {
 export type RenameNotePayload = {
   notePath: FilePath;
   newName: string;
+}
+
+export type AddTBANotePayload = {
+  notePath: FilePath;
+}
+
+type AddNeTBANoteProps = {
+  notePath: FilePath;
+  initialName: string;
 }
 
 export interface BoxState {
@@ -117,9 +141,26 @@ const findAndRenameNote = (items: NeItem[], level: number, payload: RenameNotePa
   }
 }
 
-export const noteName = (note: NeNote): string => {
-  const nameWithExtension = note.path[note.path.length - 1];
-  return nameWithExtension.split('.').slice(0, -1).join('.') || nameWithExtension;
+const addNeTBANote = (items: NeItem[], level: number, props: AddNeTBANoteProps) => {
+  const notePath = props.notePath;
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+
+    if (level !== notePath.length - 1) {
+      if (item.type === 'folder' && item.path[level] === notePath[level]) {
+        addNeTBANote(item.items, level + 1, props);
+      }
+    } else {
+      if (item.type === 'note' && item.path[level] === notePath[level]) {
+        items.splice(i + 1, 0, {
+          type: 'tba-note',
+          id: generateId(),
+          path: [...notePath.slice(0, -1), `${props.initialName}.md`],
+        } as NeTBANote);
+      }
+    }
+  }
 }
 
 export const boxSlice = createSlice({
@@ -132,6 +173,22 @@ export const boxSlice = createSlice({
         name: box.path[box.path.length - 1],
         items: convertFolderItems(box.items),
       };
+    },
+
+    addTBANote(state, action: PayloadAction<AddTBANotePayload>) {
+      const notePath = action.payload.notePath;
+      const noteName = notePath[notePath.length - 1];
+      const noteId = getId(noteName);
+
+      if (noteId) {
+        const newId = branchOutId(noteId);
+        const initialName = idToString(newId);
+
+        addNeTBANote(state.noteTree.items, 0, {
+          notePath,
+          initialName,
+        });
+      }
     },
 
     toggleFolderInternal(state, action: PayloadAction<ToggleFolderPayload>) {
@@ -147,6 +204,7 @@ export const boxSlice = createSlice({
 // Simple Actions
 export const {
   initialize,
+  addTBANote,
 } = boxSlice.actions
 
 
@@ -175,5 +233,95 @@ export const renameNote = (notePath: FilePath, newName: string) =>
       newName,
     }));
   }
+
+// Utilities
+export const noteName = (note: NeNote): string => {
+  const nameWithExtension = note.path[note.path.length - 1];
+  return nameWithExtension.split('.').slice(0, -1).join('.') || nameWithExtension;
+}
+
+export type NoteId = {
+  domain: string;
+  section: string | null;
+  notePath: string[];
+}
+
+export const getId = (noteName: string): NoteId | false => {
+  const codeType0 = /^[A-Z]\d+[a-z]*(?:-| )/ // ex: L1a-0
+  const codeType1 = /^[A-Z]\d+\./ // ex: P40.S.3a-1b-2
+
+  if (noteName.match(codeType0)) {
+    const domainCode = `[A-Z]`
+    const notePath = `\\d+[a-z]*(?:-\\d+[a-z]*)*`;
+    const re = new RegExp(`^(${domainCode})(${notePath})`);
+
+    const match = noteName.match(re);
+
+    if (match) {
+      const domain = match[1];
+      const notePath = match[2].split('-');
+
+      return {
+        domain,
+        section: null,
+        notePath,
+      }
+    }
+  } else if (noteName.match(codeType1)) {
+    const domainCode = '[A-Z]\\d+';
+    const sectionName = '\\.\\w+\\.';
+    const notePath = '\\d+[a-z]*(?:-\\d+[a-z]*)*';
+    const re = new RegExp(`^(${domainCode})(${sectionName})(${notePath})`);
+
+    const match = noteName.match(re);
+
+    if (match) {
+      const domain = match[1];
+      const section = match[2].slice(1, -1);
+      const notePath = match[3].split('-');
+
+      return {
+        domain,
+        section,
+        notePath,
+      }
+    }
+  }
+
+  return false
+}
+
+export const branchOutId = (noteId: NoteId): NoteId => {
+  return {
+    ...noteId,
+    notePath: [...noteId.notePath, '0'],
+  }
+}
+
+export const nextTopicId = (noteId: NoteId): NoteId => {
+  const pathLast = noteId.notePath[noteId.notePath.length - 1];
+  const pathLastNum = parseInt(pathLast, 10);
+
+  return {
+    ...noteId,
+    notePath: [
+      ...noteId.notePath.slice(0, -1),
+      `${pathLastNum + 1}`,
+    ],
+  }
+}
+
+export const subsequentId = (noteId: NoteId): NoteId => {
+  return noteId;
+}
+
+export const idToString = (noteId: NoteId): string => {
+  const { domain, section, notePath } = noteId;
+  if (section) {
+    return `${domain}.${section}.${notePath.join('-')}`;
+  } else {
+    return `${domain}${notePath.join('-')}`;
+  }
+}
 
 export default boxSlice.reducer
