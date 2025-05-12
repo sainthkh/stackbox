@@ -1,5 +1,7 @@
 import React from 'react';
-import { NeTBANote } from '../../redux/boxSlice';
+import { useAppDispatch } from '../../redux/hooks';
+import { NeTBANote, noteName, cancelTBANote } from '../../redux/boxSlice';
+import EditableNoteName from './EditableNoteName';
 
 export interface NeTBANoteProps {
   tbaNote: NeTBANote;
@@ -8,14 +10,25 @@ export interface NeTBANoteProps {
 const NeTBANote: React.FC<NeTBANoteProps> = ({
   tbaNote,
 }) => {
-  const notePath = tbaNote.path;
-  const initialName = notePath[notePath.length - 1];
+  const dispatch = useAppDispatch();
+
+  const onFinishEdit = (newName: string) => {
+
+  }
+
+  const onCancelEdit = () => {
+    dispatch(cancelTBANote({
+      notePath: tbaNote.path,
+    }))
+  }
 
   return (
     <div>
-      <div className="note-name flex items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active">
-        {initialName}
-      </div>
+      <EditableNoteName
+        name={noteName(tbaNote)}
+        onFinishEdit={onFinishEdit}
+        onCancelEdit={onCancelEdit}
+      />
     </div>
   );
 };

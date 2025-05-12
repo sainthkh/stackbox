@@ -53,6 +53,10 @@ export type AddTBANotePayload = {
   notePath: FilePath;
 }
 
+export type CancelTBANotePayload = {
+  notePath: FilePath;
+}
+
 type AddNeTBANoteProps = {
   notePath: FilePath;
   initialName: string;
@@ -123,25 +127,7 @@ const toggleFolderExpanded = (items: NeItem[], payload: ToggleFolderPayload, lev
   }
 }
 
-const findAndRenameNote = (items: NeItem[], level: number, payload: RenameNotePayload) => {
-  const notePath = payload.notePath;
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-
-    if (level !== notePath.length - 1) {
-      if (item.type === 'folder' && item.path[level] === notePath[level]) {
-        findAndRenameNote(item.items, level + 1, payload);
-      }
-    } else {
-      if (item.type === 'note' && item.path[level] === notePath[level]) {
-        item.path[item.path.length - 1] = `${payload.newName}.md`;
-      }
-    }
-  }
-}
-
-const addNeTBANote = (items: NeItem[], level: number, props: AddNeTBANoteProps) => {
+const findNote = <T extends { notePath: FilePath }>(items: NeItem[], level: number, props: T, cb: (items: NeItem[], index: number, props: T) => void) => {
   const notePath = props.notePath;
 
   for (let i = 0; i < items.length; i++) {
@@ -149,15 +135,14 @@ const addNeTBANote = (items: NeItem[], level: number, props: AddNeTBANoteProps) 
 
     if (level !== notePath.length - 1) {
       if (item.type === 'folder' && item.path[level] === notePath[level]) {
-        addNeTBANote(item.items, level + 1, props);
+        findNote(item.items, level + 1, props, cb)
+        break;
       }
     } else {
-      if (item.type === 'note' && item.path[level] === notePath[level]) {
-        items.splice(i + 1, 0, {
-          type: 'tba-note',
-          id: generateId(),
-          path: [...notePath.slice(0, -1), `${props.initialName}.md`],
-        } as NeTBANote);
+      if ((item.type === 'note' || item.type === 'tba-note')
+        && item.path[level] === notePath[level]) {
+        cb(items, i, props)
+        break;
       }
     }
   }
@@ -184,11 +169,27 @@ export const boxSlice = createSlice({
         const newId = branchOutId(noteId);
         const initialName = idToString(newId);
 
-        addNeTBANote(state.noteTree.items, 0, {
+        findNote(state.noteTree.items, 0, {
           notePath,
           initialName,
-        });
+        },
+          (items, index, props) => {
+            items.splice(index + 1, 0, {
+              type: 'tba-note',
+              id: generateId(),
+              path: [...notePath.slice(0, -1), `${props.initialName}.md`],
+            } as NeTBANote);
+          }
+        )
       }
+    },
+
+    cancelTBANote(state, action: PayloadAction<CancelTBANotePayload>) {
+      findNote(state.noteTree.items, 0, action.payload,
+        (items, index, props) => {
+          items.splice(index, 1);
+        }
+      )
     },
 
     toggleFolderInternal(state, action: PayloadAction<ToggleFolderPayload>) {
@@ -196,7 +197,12 @@ export const boxSlice = createSlice({
     },
 
     renameNoteInternal(state, action: PayloadAction<RenameNotePayload>) {
-      findAndRenameNote(state.noteTree.items, 0, action.payload);
+      findNote(state.noteTree.items, 0, action.payload,
+        (items, index, props) => {
+          const item = items[index]
+          item.path[item.path.length - 1] = `${props.newName}.md`
+        }
+      )
     },
   },
 })
@@ -205,6 +211,7 @@ export const boxSlice = createSlice({
 export const {
   initialize,
   addTBANote,
+  cancelTBANote,
 } = boxSlice.actions
 
 
@@ -235,7 +242,7 @@ export const renameNote = (notePath: FilePath, newName: string) =>
   }
 
 // Utilities
-export const noteName = (note: NeNote): string => {
+export const noteName = (note: NeNote | NeTBANote): string => {
   const nameWithExtension = note.path[note.path.length - 1];
   return nameWithExtension.split('.').slice(0, -1).join('.') || nameWithExtension;
 }
