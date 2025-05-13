@@ -3,9 +3,7 @@ import { MousePosition } from 'src/types';
 
 export type NoteContextCommand =
   | 'rename'
-  | 'subsequent'
-  | 'branch-out'
-  | 'next-topic'
+  | 'new-note'
   ;
 
 export interface NoteContextMenuProps {
@@ -55,25 +53,11 @@ const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
           style={{ top: position.y, left: position.x }}
         >
           <div
-            id="create-subsequent-note"
+            id="add-new-note"
             className="px-2 py-1 text-xs cursor-pointer text-text-primary transition-colors duration-200 hover:bg-sidebar-active"
-            onClick={genOnClick('subsequent')}
+            onClick={genOnClick('new-note')}
           >
-            Subsequent Note
-          </div>
-          <div
-            id="branch-out-note"
-            className="px-2 py-1 text-xs cursor-pointer text-text-primary transition-colors duration-200 hover:bg-sidebar-active"
-            onClick={genOnClick('branch-out')}
-          >
-            Branch out Note
-          </div>
-          <div
-            id="next-topic-note"
-            className="px-2 py-1 text-xs cursor-pointer text-text-primary transition-colors duration-200 hover:bg-sidebar-active"
-            onClick={genOnClick('next-topic')}
-          >
-            Next Topic Note
+            Add New Note
           </div>
           <div
             id="rename-note"

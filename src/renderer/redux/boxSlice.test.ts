@@ -1,4 +1,4 @@
-import { getId, branchOutId, idToString } from './boxSlice';
+import { getId, idToString } from './boxSlice';
 
 describe('boxSlice', () => {
   describe('noteId', () => {
@@ -48,20 +48,6 @@ describe('boxSlice', () => {
 
       const name = idToString(id);
       expect(name).toBe('L1a-1b');
-    })
-
-    test('branch out id correctly', () => {
-      const name = 'P21.S.1a-3 Hello World';
-      const id = getId(name);
-
-      if (id) {
-        const newId = branchOutId(id);
-        expect(newId.domain).toBe('P21');
-        expect(newId.section).toBe('S');
-        expect(newId.notePath).toEqual(['1a', '3', '0']);
-      } else {
-        throw new Error('Failed to parse note id');
-      }
     })
   })
 })

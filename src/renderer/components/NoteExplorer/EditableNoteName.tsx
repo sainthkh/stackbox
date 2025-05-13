@@ -43,11 +43,16 @@ const EditableNoteName: React.FC<EditableNoteNameProps> = ({
     onFinishEdit(newName);
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  }
+
   return <input
     id="editable-file-name"
     ref={inputRef}
     type="text"
     value={editedName}
+    onClick={handleClick}
     onChange={handleChange}
     onKeyDown={handleKeyDown}
     onBlur={handleBlur}

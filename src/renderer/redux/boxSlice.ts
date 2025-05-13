@@ -165,23 +165,22 @@ export const boxSlice = createSlice({
       const noteName = notePath[notePath.length - 1];
       const noteId = getId(noteName);
 
-      if (noteId) {
-        const newId = branchOutId(noteId);
-        const initialName = idToString(newId);
+      const initialName = noteId
+        ? idToString(noteId)
+        : 'untitled'
 
-        findNote(state.noteTree.items, 0, {
-          notePath,
-          initialName,
-        },
-          (items, index, props) => {
-            items.splice(index + 1, 0, {
-              type: 'tba-note',
-              id: generateId(),
-              path: [...notePath.slice(0, -1), `${props.initialName}.md`],
-            } as NeTBANote);
-          }
-        )
-      }
+      findNote(state.noteTree.items, 0, {
+        notePath,
+        initialName,
+      },
+        (items, index, props) => {
+          items.splice(index + 1, 0, {
+            type: 'tba-note',
+            id: generateId(),
+            path: [...notePath.slice(0, -1), `${props.initialName}.md`],
+          } as NeTBANote);
+        }
+      )
     },
 
     cancelTBANote(state, action: PayloadAction<CancelTBANotePayload>) {
@@ -204,6 +203,19 @@ export const boxSlice = createSlice({
             id: generateId(),
             path: props.finalizedPath,
           } as NeNote
+
+          items.sort((a, b) => {
+            if (a.type == 'folder' && b.type == 'note') {
+              return 1
+            } else if (a.type == 'note' && b.type == 'folder') {
+              return -1
+            } else {
+              const aName = a.path[a.path.length - 1]
+              const bName = b.path[b.path.length - 1]
+
+              return aName.localeCompare(bName)
+            }
+          })
         }
       )
     },
@@ -323,28 +335,8 @@ export const getId = (noteName: string): NoteId | false => {
   return false
 }
 
-export const branchOutId = (noteId: NoteId): NoteId => {
-  return {
-    ...noteId,
-    notePath: [...noteId.notePath, '0'],
-  }
-}
-
-export const nextTopicId = (noteId: NoteId): NoteId => {
-  const pathLast = noteId.notePath[noteId.notePath.length - 1];
-  const pathLastNum = parseInt(pathLast, 10);
-
-  return {
-    ...noteId,
-    notePath: [
-      ...noteId.notePath.slice(0, -1),
-      `${pathLastNum + 1}`,
-    ],
-  }
-}
-
-export const subsequentId = (noteId: NoteId): NoteId => {
-  return noteId;
+export const hadId = (noteName: string): boolean => {
+  return !!getId(noteName)
 }
 
 export const idToString = (noteId: NoteId): string => {

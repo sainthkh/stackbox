@@ -28,16 +28,10 @@ const NeNote: React.FC<NeNoteProps> = ({ note }) => {
         setEditing(true);
         break;
       }
-      case 'subsequent': {
-        break;
-      }
-      case 'branch-out': {
+      case 'new-note': {
         dispatch(addTBANote({
           notePath: note.path,
         }));
-        break;
-      }
-      case 'next-topic': {
         break;
       }
     }
