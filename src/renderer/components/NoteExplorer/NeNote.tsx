@@ -1,8 +1,13 @@
 import React, { useState, useEffect, } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
-import NoteContextMenu, { NoteContextCommand } from './NoteContextMenu';
+import NeContextMenu from './NeContextMenu'
 import EditableNoteName from './EditableNoteName';
 import { type NeNote, noteName, renameNote, addTBANote } from '../../redux/boxSlice';
+
+type NoteContextCommand =
+  | 'rename'
+  | 'new-note'
+  ;
 
 export interface NeNoteProps {
   note: NeNote;
@@ -51,7 +56,12 @@ const NeNote: React.FC<NeNoteProps> = ({ note }) => {
       className={`note-name flex items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active`}
       onContextMenu={handleContextMenu}
     >
-      <NoteContextMenu
+      <NeContextMenu
+        menuId="note-context-menu"
+        menuItems={[
+          { id: 'add-new-note', command: 'new-note', content: 'Add New Note' },
+          { id: 'rename-note', command: 'rename', content: 'Rename' },
+        ]}
         showContextMenu={showContextMenu}
         position={mousePosition}
         closeContextMenu={() => setShowContextMenu(false)}

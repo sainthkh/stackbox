@@ -1,9 +1,14 @@
 import React, { useState, useEffect, } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
-import { type NeFolder, toggleFolder } from '../../redux/boxSlice';
+import { type NeFolder, toggleFolder, addTBANoteToFolder } from '../../redux/boxSlice';
+import NeContextMenu from './NeContextMenu';
 import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import NeNote from './NeNote';
 import NeTBANote from './NeTBANote';
+
+type FolderContextCommand =
+  | 'add-new-note'
+  ;
 
 export interface NeFolderProps {
   folder: NeFolder;
@@ -11,6 +16,29 @@ export interface NeFolderProps {
 
 const NeFolder: React.FC<NeFolderProps> = ({ folder }) => {
   const dispatch = useAppDispatch();
+
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowContextMenu(true);
+    setMousePosition({ x: e.clientX, y: e.clientY });
+  };
+
+  const doMenu = (menu: FolderContextCommand) => {
+    switch (menu) {
+      case 'add-new-note': {
+        dispatch(addTBANoteToFolder(
+          folder.path,
+          folder.expanded,
+        ));
+
+        break;
+      }
+    }
+  }
 
   const name = folder.path[folder.path.length - 1];
 
@@ -24,7 +52,18 @@ const NeFolder: React.FC<NeFolderProps> = ({ folder }) => {
     <div
       className={`folder-name items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active`}
       onClick={onClick}
+      onContextMenu={handleContextMenu}
     >
+      <NeContextMenu
+        menuId='folder-context-menu'
+        menuItems={[
+          { id: 'add-new-note', command: 'add-new-note', content: 'Add new note' },
+        ]}
+        showContextMenu={showContextMenu}
+        position={mousePosition}
+        closeContextMenu={() => setShowContextMenu(false)}
+        doMenu={doMenu}
+      />
       <div className="flex">
         {folder.expanded
           ? <ChevronDownIcon className="h-4 w-4 mr-2" />

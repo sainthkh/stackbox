@@ -1,24 +1,29 @@
 import React, { useRef, useEffect } from 'react';
 import { MousePosition } from 'src/types';
 
-export type NoteContextCommand =
-  | 'rename'
-  | 'new-note'
-  ;
+export type MenuItem<T> = {
+  id: string
+  command: T
+  content: string
+}
 
-export interface NoteContextMenuProps {
+export interface ContextMenuProps<T> {
+  menuId: string;
+  menuItems: MenuItem<T>[]
   showContextMenu: boolean;
   position: MousePosition;
   closeContextMenu: () => void;
-  doMenu: (menu: NoteContextCommand) => void;
+  doMenu: (menu: T) => void;
 }
 
-const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
+export default function NeContextMenu<T>({
+  menuId,
+  menuItems,
   showContextMenu,
   position,
   closeContextMenu,
   doMenu,
-}) => {
+}: ContextMenuProps<T>) {
   const contextMenuRef = useRef<HTMLDivElement>(null);
 
   // Close context menu when clicking outside
@@ -35,7 +40,7 @@ const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
     };
   }, []);
 
-  const genOnClick = (command: NoteContextCommand) => (e: React.MouseEvent) => {
+  const genOnClick = (command: T) => (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
 
@@ -43,33 +48,34 @@ const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
     closeContextMenu();
   }
 
+  const handleOnClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+
   return (
     <>
       {showContextMenu && (
         <div
           ref={contextMenuRef}
-          id="note-context-menu"
+          id={menuId}
           className="absolute bg-sidebar-bg border border-border shadow-md rounded z-[1000] overflow-hidden min-w-[150px]"
+          onClick={handleOnClick}
           style={{ top: position.y, left: position.x }}
         >
-          <div
-            id="add-new-note"
-            className="px-2 py-1 text-xs cursor-pointer text-text-primary transition-colors duration-200 hover:bg-sidebar-active"
-            onClick={genOnClick('new-note')}
-          >
-            Add New Note
-          </div>
-          <div
-            id="rename-note"
-            className="px-2 py-1 text-xs cursor-pointer text-text-primary transition-colors duration-200 hover:bg-sidebar-active"
-            onClick={genOnClick('rename')}
-          >
-            Rename
-          </div>
+          {menuItems.map((item, i) => {
+            return (
+              <div
+                id={item.id}
+                className="px-2 py-1 text-xs cursor-pointer text-text-primary transition-colors duration-200 hover:bg-sidebar-active"
+                onClick={genOnClick(item.command)}
+              >
+                {item.content}
+              </div>
+            )
+          })}
         </div>
       )}
     </>
   )
 }
-
-export default NoteContextMenu;

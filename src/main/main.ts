@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { FilePath } from '../types';
 import { StartupData, OpenedNote, SavedBox, SavedItem, SavedFolder, SavedNote } from './api';
 
+import { installExtension, REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
+
 let mainWindow: BrowserWindow | null;
 let boxPath: string;
 
@@ -271,6 +273,14 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  const useExtension = process.argv.includes('--use-extension');
+
+  if (useExtension) {
+    installExtension([REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS], { loadExtensionOptions: { allowFileAccess: true } })
+      .then(([react, redux]) => console.log(`Added Extension:  ${react.name} ${redux.name}`))
+      .catch((err) => console.log('An error occurred: ', err));
+  }
+
   setupIpcHandlers();
   createWindow();
 });

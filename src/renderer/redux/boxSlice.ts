@@ -53,6 +53,10 @@ export type AddTBANotePayload = {
   notePath: FilePath;
 }
 
+export type AddTBANoteToFolderPayload = {
+  folderPath: FilePath;
+}
+
 export type CancelTBANotePayload = {
   notePath: FilePath;
 }
@@ -109,18 +113,17 @@ const convertFolderItems = (items: SavedItem[]): NeItem[] => {
   });
 }
 
-const toggleFolderExpanded = (items: NeItem[], payload: ToggleFolderPayload, level: number) => {
-  const folderPath = payload.folderPath;
+const findFolder = <T extends { folderPath: FilePath }>(items: NeItem[], level: number, props: T, cb: (items: NeItem[], index: number, props: T) => void) => {
+  const folderPath = props.folderPath;
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     if (item.type === 'folder') {
       if (item.path[level] === folderPath[level]) {
         if ((folderPath.length - 1) === level) {
-          item.expanded = !item.expanded;
-          item.items = convertFolderItems(payload.items);
+          cb(items, i, props)
         } else {
-          toggleFolderExpanded(item.items, payload, level + 1);
+          findFolder(item.items, level + 1, props, cb);
         }
       }
     }
@@ -191,8 +194,39 @@ export const boxSlice = createSlice({
       )
     },
 
+    addTBANoteToFolderInternal(state, action: PayloadAction<AddTBANoteToFolderPayload>) {
+      findFolder(state.noteTree.items, 0, action.payload,
+        (items, index, props) => {
+          const folder = items[index] as NeFolder
+
+          let firstNote = folder.items.length;
+
+          for (let i = 0; i < folder.items.length - 1; i++) {
+            if (folder.items[i].type === 'note') {
+              firstNote = i
+              break;
+            }
+          }
+
+          const initialName = 'untitled'
+
+          folder.items.splice(firstNote, 0, {
+            type: 'tba-note',
+            id: generateId(),
+            path: [...props.folderPath, `${initialName}.md`]
+          } as NeTBANote)
+        }
+      )
+    },
+
     toggleFolderInternal(state, action: PayloadAction<ToggleFolderPayload>) {
-      toggleFolderExpanded(state.noteTree.items, action.payload, 0);
+      findFolder(state.noteTree.items, 0, action.payload,
+        (items, index, props) => {
+          const folder = items[index] as NeFolder;
+          folder.expanded = !folder.expanded;
+          folder.items = convertFolderItems(props.items)
+        }
+      );
     },
 
     tbaNoteToNoteInternal(state, action: PayloadAction<TBANoteToNotePayload>) {
@@ -206,9 +240,9 @@ export const boxSlice = createSlice({
 
           items.sort((a, b) => {
             if (a.type == 'folder' && b.type == 'note') {
-              return 1
-            } else if (a.type == 'note' && b.type == 'folder') {
               return -1
+            } else if (a.type == 'note' && b.type == 'folder') {
+              return 1
             } else {
               const aName = a.path[a.path.length - 1]
               const bName = b.path[b.path.length - 1]
@@ -242,6 +276,7 @@ export const {
 // Thunks
 const {
   toggleFolderInternal,
+  addTBANoteToFolderInternal,
   tbaNoteToNoteInternal,
   renameNoteInternal,
 } = boxSlice.actions;
@@ -253,6 +288,22 @@ export const toggleFolder = (folderPath: FilePath) =>
     dispatch(toggleFolderInternal({
       folderPath,
       items,
+    }));
+  }
+
+export const addTBANoteToFolder = (folderPath: FilePath, expanded: boolean) =>
+  async (dispatch: any) => {
+    if (!expanded) {
+      const items = await window.electronAPI.loadFolder(folderPath);
+
+      dispatch(toggleFolderInternal({
+        folderPath,
+        items,
+      }));
+    }
+
+    dispatch(addTBANoteToFolderInternal({
+      folderPath,
     }));
   }
 
