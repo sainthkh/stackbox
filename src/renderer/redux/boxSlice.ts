@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { FilePath } from '../../types'
 import { StartupData, SavedNote, SavedFolder, SavedItem } from 'src/main/api';
 
+// Note Explorer
 export type NeItem =
   | NeNote
   | NeTBANote
@@ -39,6 +40,14 @@ export type NeFolder = {
   items: NeItem[];
 }
 
+// OpenNote
+export type OpenNote = {
+  title: string;
+  content: string;
+  notePath: FilePath;
+}
+
+// Payloads
 export type ToggleFolderPayload = {
   folderPath: FilePath;
   items: SavedItem[];
@@ -66,9 +75,14 @@ export type TBANoteToNotePayload = {
   finalizedPath: FilePath;
 }
 
+export type OpenNotePayload = {
+  openedNote: OpenNote;
+}
+
+// Slice
 export interface BoxState {
   noteTree: NoteExplorerTree;
-  activeNote: NeNote | null;
+  openNote: OpenNote | null;
 }
 
 const initialState: BoxState = {
@@ -76,7 +90,7 @@ const initialState: BoxState = {
     name: 'root',
     items: [],
   },
-  activeNote: null,
+  openNote: null,
 }
 
 let id = 0;
@@ -194,6 +208,19 @@ export const boxSlice = createSlice({
       )
     },
 
+    updateOpenNoteTitle(state, action: PayloadAction<string>) {
+      if (state.openNote) {
+        state.openNote.title = action.payload;
+      }
+    },
+
+    updateOpenNoteContent(state, action: PayloadAction<string>) {
+      if (state.openNote) {
+        state.openNote.content = action.payload;
+      }
+    },
+
+    // Internal Actions
     addTBANoteToFolderInternal(state, action: PayloadAction<AddTBANoteToFolderPayload>) {
       findFolder(state.noteTree.items, 0, action.payload,
         (items, index, props) => {
@@ -262,6 +289,11 @@ export const boxSlice = createSlice({
         }
       )
     },
+
+    openNoteInternal(state, action: PayloadAction<OpenNotePayload>) {
+      const { openedNote } = action.payload;
+      state.openNote = openedNote;
+    },
   },
 })
 
@@ -270,6 +302,8 @@ export const {
   initialize,
   addTBANote,
   cancelTBANote,
+  updateOpenNoteTitle,
+  updateOpenNoteContent,
 } = boxSlice.actions
 
 
@@ -279,6 +313,7 @@ const {
   addTBANoteToFolderInternal,
   tbaNoteToNoteInternal,
   renameNoteInternal,
+  openNoteInternal,
 } = boxSlice.actions;
 
 export const toggleFolder = (folderPath: FilePath) =>
@@ -329,9 +364,28 @@ export const saveTBANote = (notePath: FilePath, noteName: string) =>
     }))
   }
 
+export const openNote = (notePath: FilePath) =>
+  async (dispatch: any) => {
+    const note = await window.electronAPI.loadNote(notePath);
+    const title = noteNameFromPath(notePath);
+
+    dispatch(openNoteInternal({
+      openedNote: {
+        title,
+        content: note,
+        notePath,
+      }
+    }));
+  }
+
 // Utilities
 export const noteName = (note: NeNote | NeTBANote): string => {
   const nameWithExtension = note.path[note.path.length - 1];
+  return nameWithExtension.split('.').slice(0, -1).join('.') || nameWithExtension;
+}
+
+export const noteNameFromPath = (notePath: FilePath): string => {
+  const nameWithExtension = notePath[notePath.length - 1];
   return nameWithExtension.split('.').slice(0, -1).join('.') || nameWithExtension;
 }
 

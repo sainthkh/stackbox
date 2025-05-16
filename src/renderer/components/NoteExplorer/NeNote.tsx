@@ -2,7 +2,7 @@ import React, { useState, useEffect, } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import NeContextMenu from './NeContextMenu'
 import EditableNoteName from './EditableNoteName';
-import { type NeNote, noteName, renameNote, addTBANote } from '../../redux/boxSlice';
+import { type NeNote, noteName, renameNote, addTBANote, openNote, } from '../../redux/boxSlice';
 
 type NoteContextCommand =
   | 'rename'
@@ -19,6 +19,12 @@ const NeNote: React.FC<NeNoteProps> = ({ note }) => {
   const [editing, setEditing] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    dispatch(openNote(note.path));
+  }
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -54,6 +60,7 @@ const NeNote: React.FC<NeNoteProps> = ({ note }) => {
   return (
     <div
       className={`note-name flex items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active`}
+      onClick={handleClick}
       onContextMenu={handleContextMenu}
     >
       <NeContextMenu

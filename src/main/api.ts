@@ -36,17 +36,7 @@ export interface ElectronAPI {
   loadFolder: (folderPath: FilePath) => Promise<SavedItem[]>;
   renameNote: (oldPath: FilePath, newName: string) => Promise<boolean>;
   createNewNote: (notePaht: FilePath) => Promise<boolean>;
-
-  loadNotes: (directoryPath: string) => Promise<Array<{
-    filePath: string;
-    fileName: string;
-    lastModified: number;
-  }>>;
-  readFile: (filePath: string) => Promise<string>;
-  writeFile: (filePath: string, content: string) => Promise<boolean>;
-  resolvePath: (relativePath: string) => Promise<string>;
-  uuid: () => Promise<string>;
-  renameFile: (oldPath: string, newPath: string) => Promise<boolean>;
+  loadNote: (notePath: FilePath) => Promise<string>;
 }
 
 declare global {

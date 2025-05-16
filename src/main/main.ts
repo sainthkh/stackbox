@@ -170,74 +170,13 @@ function setupIpcHandlers() {
     }
   })
 
-  /////////////////////////////////////////////////////////
+  ipcMain.handle('load-note', async (_, notePath) => {
+    const filePath = path.join(boxPath, notePath.join(path.sep));
 
-  ipcMain.handle('load-notes', async (_, directoryPath) => {
     try {
-      const resolvedPath = path.resolve(directoryPath);
-
-      // Check if directory exists
-      if (fs.existsSync(resolvedPath)) {
-        const files = fs.readdirSync(resolvedPath);
-
-        return files
-          .filter(file => file.endsWith('.md'))
-          .map(file => {
-            const filePath = path.join(resolvedPath, file);
-            const content = fs.readFileSync(filePath, 'utf-8');
-            const stats = fs.statSync(filePath);
-
-            return {
-              filePath,
-              fileName: file,
-              lastModified: stats.mtime.getTime(),
-            };
-          });
-      }
-      return [];
-    } catch (error) {
-      console.error('Error loading notes:', error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle('read-file', async (_, filePath) => {
-    try {
-      return fs.readFileSync(filePath, 'utf-8');
+      return await readFile(filePath, 'utf-8');
     } catch (error) {
       console.error('Error reading file:', error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle('write-file', async (_, filePath, content) => {
-    if (noWrite) return true;
-
-    try {
-      fs.writeFileSync(filePath, content, 'utf-8');
-      return true;
-    } catch (error) {
-      console.error('Error writing file:', error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle('resolve-path', async (_, relativePath) => {
-    return path.resolve(relativePath);
-  });
-
-  ipcMain.handle('uuid', async () => {
-    return uuidv4();
-  });
-
-  ipcMain.handle('rename-file', async (_, oldPath, newPath) => {
-    if (noWrite) return true;
-
-    try {
-      fs.renameSync(oldPath, newPath);
-      return true;
-    } catch (error) {
-      console.error('Error renaming file:', error);
       throw error;
     }
   });

@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { Note } from '../redux/o-notesSlice'
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
+import { type OpenNote, updateOpenNoteContent, updateOpenNoteTitle } from '../redux/boxSlice';
 
 interface MarkdownEditorProps {
-  note: Note | null;
-  titleValue: string;
-  onTitleChange: (value: string) => void;
-  onNoteChange: (content: string) => void;
 }
 
-const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ note, titleValue, onTitleChange, onNoteChange }) => {
+const MarkdownEditor: React.FC<MarkdownEditorProps> = () => {
+  const dispatch = useAppDispatch();
+  const { openNote: note } = useAppSelector(state => state.box);
 
   if (!note) {
     return (
@@ -19,7 +18,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ note, titleValue, onTit
   }
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onTitleChange(e.target.value);
+    dispatch(updateOpenNoteTitle(e.target.value));
   };
 
   const handleTitleBlur = () => {
@@ -32,6 +31,10 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ note, titleValue, onTit
     }
   };
 
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    dispatch(updateOpenNoteContent(e.target.value));
+  };
+
   return (
     <div className="h-full flex flex-col">
       <div className="bg-black border-b border-border p-2 flex justify-between items-center">
@@ -39,7 +42,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ note, titleValue, onTit
           id="note-title"
           type="text"
           className="bg-transparent text-base font-medium outline-none px-1 w-full"
-          value={titleValue}
+          value={note.title}
           onChange={handleTitleChange}
           onBlur={handleTitleBlur}
           onKeyDown={handleTitleKeyDown}
@@ -51,7 +54,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ note, titleValue, onTit
         <textarea
           className="w-full h-full bg-black text-text-primary p-4 resize-none outline-none border-none"
           value={note.content}
-          onChange={(e) => onNoteChange(e.target.value)}
+          onChange={handleContentChange}
           placeholder="Write your markdown here..."
         />
       </div>
