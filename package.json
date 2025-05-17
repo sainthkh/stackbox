@@ -8,7 +8,7 @@
     "dev": "concurrently \"npm run watch\" \"npm run electron-dev\"",
     "electron-dev": "wait-on dist/main.js && electron .",
     "test": "npx playwright test",
-    "test-headed": "npx playwright test --headed",
+    "test:jest": "npx jest",
     "build": "tsc && webpack --mode production",
     "watch": "concurrently \"tsc -w\" \"webpack --mode development --watch\"",
     "lint": "eslint --ext .ts,.tsx src/"
