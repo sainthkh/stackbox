@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { type OpenNote, updateOpenNoteContent, updateOpenNoteTitle } from '../redux/boxSlice';
+import { updateOpenNoteContent, updateOpenNoteTitle, renameNote } from '../redux/boxSlice';
 
 interface MarkdownEditorProps {
 }
@@ -24,6 +24,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = () => {
   };
 
   const handleTitleBlur = () => {
+    dispatch(renameNote(note.notePath, note.title));
   };
 
   const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

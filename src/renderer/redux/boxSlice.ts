@@ -288,6 +288,14 @@ export const boxSlice = createSlice({
           item.path[item.path.length - 1] = `${props.newName}.md`
         }
       )
+
+      if (state.openNote) {
+        if (state.openNote.notePath.join('/') === action.payload.notePath.join('/')) {
+          const { notePath, newName } = action.payload;
+
+          state.openNote.notePath = [...notePath.slice(0, -1), `${newName}.md`]
+        }
+      }
     },
 
     openNoteInternal(state, action: PayloadAction<OpenNotePayload>) {
