@@ -76,6 +76,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = () => {
 
       <div className="flex-1 overflow-hidden">
         <textarea
+          id="note-content"
           className="w-full h-full bg-black text-text-primary p-4 resize-none outline-none border-none"
           value={note.content}
           onFocus={handleContentFocus}
