@@ -1,112 +1,89 @@
 // @ts-nocheck
-const { test, expect, _electron: electron } = require('@playwright/test')
+import { setupEach, describe, test, expect } from './util'
 
-const describe = test.describe;
-const beforeEach = test.beforeEach;
-const afterEach = test.afterEach;
-
-describe('test', () => {
-  let electronApp: any;
-  let window: any;
-  beforeEach(async () => {
-    electronApp = await electron.launch({ args: ['.', '--test-no-write'] })
-    const isPackaged = await electronApp.evaluate(async ({ app }) => {
-      // This runs in Electron's main process, parameter here is always
-      // the result of the require('electron') in the main app script.
-      return app.isPackaged
-    })
-
-    expect(isPackaged).toBe(false)
-
-    // Wait for the first BrowserWindow to open
-    // and return its Page object
-    window = await electronApp.firstWindow()
-  });
-
-  afterEach(async () => {
-    await electronApp.close()
-  });
+describe('NoteExplorer', () => {
+  setupEach()
 
   test('note is visible correctly', async () => {
-    const note = await window.locator('.note-name')
+    const note = await pwWnd.locator('.note-name')
       .filter({ hasText: 'Welcome to StackBox' })
     await expect(note).toBeVisible()
   })
 
   test('do not show non-existing note', async () => {
-    const nonexistentNote = await window.getByText('Nonexistent Note')
+    const nonexistentNote = await pwWnd.getByText('Nonexistent Note')
     await expect(nonexistentNote).not.toBeVisible()
   })
 
   test('click note name opens note editor', async () => {
-    const emptyMsg = await window.locator('#no-selected')
+    const emptyMsg = await pwWnd.locator('#no-selected')
 
     await expect(emptyMsg).toHaveText('Select a note or create a new one')
 
-    const note = await window.locator('.note-name')
+    const note = await pwWnd.locator('.note-name')
       .filter({ hasText: 'Welcome to StackBox' })
     await note.click()
 
-    const noteTitle = await window.locator('#note-title')
+    const noteTitle = await pwWnd.locator('#note-title')
 
     await expect(noteTitle).toHaveValue('Welcome to StackBox')
   })
 
   test('clicking folder name toggles folder expansion', async () => {
-    const note = await window.locator('.note-name')
+    const note = await pwWnd.locator('.note-name')
       .filter({ hasText: 'Hello note' })
 
     await expect(note).not.toBeVisible()
 
-    const folderName = await window.locator('.folder-name')
+    const folderName = await pwWnd.locator('.folder-name')
       .filter({ hasText: 'Folder A' })
     await folderName.click()
 
-    const note2 = await window.locator('.note-name')
+    const note2 = await pwWnd.locator('.note-name')
       .filter({ hasText: 'Hello note' })
     await expect(note2).toBeVisible()
   });
 
   test('right-clicking folder shows context menu with create new note option', async () => {
-    const folderName = await window.locator('.folder-name')
+    const folderName = await pwWnd.locator('.folder-name')
       .filter({ hasText: 'Folder A' });
     await folderName.click({ button: 'right' });
 
-    const createNewNoteOption = await window.locator('#add-new-note');
+    const createNewNoteOption = await pwWnd.locator('#add-new-note');
     await expect(createNewNoteOption).toBeVisible();
   });
 
   test('right-clicking note shows context menu with add new note option', async () => {
-    const note = await window.locator('.note-name')
+    const note = await pwWnd.locator('.note-name')
       .filter({ hasText: 'Welcome to StackBox' });
     await note.click({ button: 'right' });
 
-    const addNewNoteOption = await window.locator('#add-new-note');
+    const addNewNoteOption = await pwWnd.locator('#add-new-note');
     await expect(addNewNoteOption).toBeVisible();
   });
 
   test('right-clicking note shows context menu with rename option', async () => {
-    const note = await window.locator('.note-name')
+    const note = await pwWnd.locator('.note-name')
       .filter({ hasText: 'Welcome to StackBox' });
     await note.click({ button: 'right' });
 
-    const renameNoteOption = await window.locator('#rename-note');
+    const renameNoteOption = await pwWnd.locator('#rename-note');
     await expect(renameNoteOption).toBeVisible();
   });
 
   test('renaming a note updates the note title', async () => {
-    const note = await window.locator('.note-name')
+    const note = await pwWnd.locator('.note-name')
       .filter({ hasText: 'Welcome to StackBox' });
     await note.click({ button: 'right' });
 
-    const renameNoteOption = await window.locator('#rename-note');
+    const renameNoteOption = await pwWnd.locator('#rename-note');
     await renameNoteOption.click();
 
-    const noteTitle = await window.locator('#editable-file-name');
+    const noteTitle = await pwWnd.locator('#editable-file-name');
     await noteTitle.fill('Renamed Note Title');
     await noteTitle.press('Enter');
 
-    const renamedNote = await window.locator('.note-name')
+    const renamedNote = await pwWnd.locator('.note-name')
       .filter({ hasText: 'Renamed Note Title' });
 
     await expect(renamedNote).toBeVisible();
