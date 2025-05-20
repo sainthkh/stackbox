@@ -37,6 +37,7 @@ export interface ElectronAPI {
   renameNote: (oldPath: FilePath, newName: string) => Promise<boolean>;
   createNewNote: (notePaht: FilePath) => Promise<boolean>;
   loadNote: (notePath: FilePath) => Promise<string>;
+  saveNote: (notePath: FilePath, content: string) => Promise<boolean>;
 }
 
 declare global {

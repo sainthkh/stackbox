@@ -180,6 +180,20 @@ function setupIpcHandlers() {
       throw error;
     }
   });
+
+  ipcMain.handle('save-note', async (_, notePath, content) => {
+    if (noWrite) return true;
+
+    const filePath = path.join(boxPath, notePath.join(path.sep));
+
+    try {
+      await writeFile(filePath, content, 'utf-8');
+      return true;
+    } catch (error) {
+      console.error('Error writing file:', error);
+      throw error;
+    }
+  });
 }
 
 function createWindow() {

@@ -20,6 +20,12 @@
     "notes"
   ],
   "author": "",
+  "electronmon": {
+    "patterns": [
+      "!sample-box/**/*",
+      "!dist/**/*"
+    ]
+  },
   "license": "MIT",
   "dependencies": {
     "@heroicons/react": "^2.2.0",

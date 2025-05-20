@@ -386,6 +386,11 @@ export const openNote = (notePath: FilePath) =>
     }));
   }
 
+export const saveNote = (notePath: FilePath, content: string) =>
+  async (dispatch: any) => {
+    await window.electronAPI.saveNote(notePath, content);
+  }
+
 // Utilities
 export const noteName = (note: NeNote | NeTBANote): string => {
   const nameWithExtension = note.path[note.path.length - 1];

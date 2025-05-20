@@ -9,4 +9,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   renameNote: (oldPath: FilePath, newName: string) => ipcRenderer.invoke('rename-note', oldPath, newName),
   createNewNote: (notePath: FilePath) => ipcRenderer.invoke('create-new-note', notePath),
   loadNote: (notePath: FilePath) => ipcRenderer.invoke('load-note', notePath),
+  saveNote: (notePath: FilePath, content: string) => ipcRenderer.invoke('save-note', notePath, content),
 });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { updateOpenNoteContent, updateOpenNoteTitle, renameNote } from '../redux/boxSlice';
+import { updateOpenNoteContent, updateOpenNoteTitle, renameNote, saveNote } from '../redux/boxSlice';
 
 interface MarkdownEditorProps {
 }
@@ -19,6 +19,8 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = () => {
     );
   }
 
+  // Title
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(updateOpenNoteTitle(e.target.value));
   };
@@ -34,8 +36,27 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = () => {
     }
   };
 
+  // Content
+
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     dispatch(updateOpenNoteContent(e.target.value));
+  };
+
+  var timer: NodeJS.Timeout | null = null;
+
+  const handleContentFocus = () => {
+    timer = setInterval(() => {
+      dispatch(saveNote(note.notePath, note.content));
+    }, 100 * 1000)
+  }
+
+  const handleContentBlur = () => {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+
+    dispatch(saveNote(note.notePath, note.content));
   };
 
   return (
@@ -57,6 +78,8 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = () => {
         <textarea
           className="w-full h-full bg-black text-text-primary p-4 resize-none outline-none border-none"
           value={note.content}
+          onFocus={handleContentFocus}
+          onBlur={handleContentBlur}
           onChange={handleContentChange}
           placeholder="Write your markdown here..."
         />
