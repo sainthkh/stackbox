@@ -395,6 +395,14 @@ export const saveNote = (notePath: FilePath, content: string) =>
     dispatch(updateOpenNoteContent(content));
   }
 
+export const saveBoxState = () =>
+  async (dispatch: any, getState: any) => {
+    const box = getState().box;
+    const openNotePath = box.openNote?.notePath || [];
+
+    await window.electronAPI.saveBoxState([], openNotePath);
+  }
+
 // Utilities
 export const noteName = (note: NeNote | NeTBANote): string => {
   const nameWithExtension = note.path[note.path.length - 1];

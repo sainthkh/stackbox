@@ -194,6 +194,32 @@ function setupIpcHandlers() {
       throw error;
     }
   });
+
+  ipcMain.handle('save-box-state', async (_, folders, opendNote) => {
+    if (noWrite) return true;
+
+    const boxConfigPath = path.join(boxPath, '.stackbox', 'config.json');
+
+    // In case, the config file does not exist, create it
+    const boxConfigExists = await fileExists(boxConfigPath);
+    if (!boxConfigExists) {
+      await mkdir(path.dirname(boxConfigPath), { recursive: true });
+      await writeFile(boxConfigPath, JSON.stringify({}), 'utf-8');
+    }
+
+    const boxConfig: BoxConfig = {
+      expandedFolders: folders,
+      openedNotes: [opendNote],
+    }
+
+    try {
+      await writeFile(boxConfigPath, JSON.stringify(boxConfig), 'utf-8');
+      return true;
+    } catch (error) {
+      console.error('Error writing file:', error);
+      throw error;
+    }
+  })
 }
 
 function createWindow() {

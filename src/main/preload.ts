@@ -10,4 +10,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   createNewNote: (notePath: FilePath) => ipcRenderer.invoke('create-new-note', notePath),
   loadNote: (notePath: FilePath) => ipcRenderer.invoke('load-note', notePath),
   saveNote: (notePath: FilePath, content: string) => ipcRenderer.invoke('save-note', notePath, content),
+  saveBoxState: (folders: FilePath[], openedNote: FilePath) => ipcRenderer.invoke('save-box-state', folders, openedNote),
 });

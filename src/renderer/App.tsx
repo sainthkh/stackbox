@@ -4,6 +4,7 @@ import MarkdownEditor from './components/MarkdownEditor';
 import { useAppDispatch, useAppSelector } from './redux/hooks';
 import {
   initialize,
+  saveBoxState,
 } from './redux/boxSlice';
 
 const App: React.FC = () => {
@@ -20,7 +21,16 @@ const App: React.FC = () => {
       }
     };
 
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      dispatch(saveBoxState());
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     startup();
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, [dispatch]);
 
   return (

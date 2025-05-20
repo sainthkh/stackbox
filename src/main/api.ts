@@ -38,6 +38,7 @@ export interface ElectronAPI {
   createNewNote: (notePaht: FilePath) => Promise<boolean>;
   loadNote: (notePath: FilePath) => Promise<string>;
   saveNote: (notePath: FilePath, content: string) => Promise<boolean>;
+  saveBoxState: (folders: FilePath[], openedNote: FilePath) => Promise<boolean>;
 }
 
 declare global {
