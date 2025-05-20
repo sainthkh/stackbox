@@ -289,10 +289,12 @@ export const boxSlice = createSlice({
         }
       )
 
-      if (state.openNote) {
-        if (state.openNote.notePath.join('/') === action.payload.notePath.join('/')) {
-          const { notePath, newName } = action.payload;
+      const { notePath, newName } = action.payload;
 
+      if (state.openNote) {
+        if (state.openNote.notePath.join('/') === notePath.join('/')) {
+
+          state.openNote.title = newName;
           state.openNote.notePath = [...notePath.slice(0, -1), `${newName}.md`]
         }
       }
@@ -389,6 +391,8 @@ export const openNote = (notePath: FilePath) =>
 export const saveNote = (notePath: FilePath, content: string) =>
   async (dispatch: any) => {
     await window.electronAPI.saveNote(notePath, content);
+
+    dispatch(updateOpenNoteContent(content));
   }
 
 // Utilities
