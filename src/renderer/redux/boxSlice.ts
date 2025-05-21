@@ -182,14 +182,6 @@ export const boxSlice = createSlice({
   name: 'box',
   initialState,
   reducers: {
-    initialize(state, action: PayloadAction<StartupData>) {
-      const { box } = action.payload;
-      state.noteTree = {
-        name: box.path[box.path.length - 1],
-        items: convertFolderItems(box.items),
-      };
-    },
-
     addTBANote(state, action: PayloadAction<AddTBANotePayload>) {
       const notePath = action.payload.notePath;
       const noteName = notePath[notePath.length - 1];
@@ -234,6 +226,21 @@ export const boxSlice = createSlice({
     },
 
     // Internal Actions
+    initializeInternal(state, action: PayloadAction<StartupData>) {
+      const { box, openedNote } = action.payload;
+      state.noteTree = {
+        name: box.path[box.path.length - 1],
+        items: convertFolderItems(box.items),
+      };
+      if (openedNote) {
+        state.openNote = {
+          title: openedNote.path[openedNote.path.length - 1],
+          content: openedNote.content,
+          notePath: openedNote.path,
+        }
+      }
+    },
+
     addTBANoteToFolderInternal(state, action: PayloadAction<AddTBANoteToFolderPayload>) {
       findFolder(state.noteTree.items, 0, action.payload,
         (items, index, props) => {
@@ -322,7 +329,6 @@ export const boxSlice = createSlice({
 
 // Simple Actions
 export const {
-  initialize,
   addTBANote,
   cancelTBANote,
   updateOpenNoteTitle,
@@ -332,12 +338,21 @@ export const {
 
 // Thunks
 const {
+  initializeInternal,
   toggleFolderInternal,
   addTBANoteToFolderInternal,
   tbaNoteToNoteInternal,
   renameNoteInternal,
   openNoteInternal,
 } = boxSlice.actions;
+
+export const initialize = () =>
+  async (dispatch: any) => {
+    const startupData = await window.electronAPI.startup();
+
+    dispatch(initializeInternal(startupData));
+  }
+
 
 export const toggleFolder = (folderPath: FilePath) =>
   async (dispatch: any) => {

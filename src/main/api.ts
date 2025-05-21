@@ -23,11 +23,12 @@ export type SavedFolder = {
 
 export type OpenedNote = {
   path: FilePath;
+  content: string;
 }
 
 export interface StartupData {
   box: SavedBox;
-  openedNotes: OpenedNote[];
+  openedNote: OpenedNote | null;
 }
 
 // ElectronAPI interface for TypeScript

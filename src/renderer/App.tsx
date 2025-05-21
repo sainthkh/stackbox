@@ -12,14 +12,7 @@ const App: React.FC = () => {
 
   // Load notes from sample-box on startup
   useEffect(() => {
-    const startup = async () => {
-      try {
-        const startupData = await window.electronAPI.startup();
-        dispatch(initialize(startupData));
-      } catch (error) {
-        console.error('Error loading sample notes:', error);
-      }
-    };
+    dispatch(initialize());
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       dispatch(saveBoxState());
@@ -27,7 +20,6 @@ const App: React.FC = () => {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    startup();
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };

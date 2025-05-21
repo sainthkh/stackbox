@@ -2,7 +2,6 @@ import { app, BrowserWindow, nativeTheme, ipcMain } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { readFile, writeFile, access, readdir, mkdir, stat, rename } from 'fs/promises';
-import { v4 as uuidv4 } from 'uuid';
 import { FilePath } from '../types';
 import { StartupData, OpenedNote, SavedBox, SavedItem, SavedFolder, SavedNote } from './api';
 
@@ -21,9 +20,20 @@ async function fileExists(filePath: string): Promise<boolean> {
   }
 }
 
+async function loadNote(notePath: FilePath): Promise<string> {
+  const filePath = path.join(boxPath, notePath.join(path.sep));
+
+  try {
+    return await readFile(filePath, 'utf-8');
+  } catch (error) {
+    console.error('Error reading file:', error);
+    throw error;
+  }
+}
+
 interface BoxConfig {
   expandedFolders: FilePath[];
-  openedNotes: FilePath[];
+  openedNote: FilePath;
 }
 
 // Set up IPC handlers for secure file operations
@@ -86,25 +96,26 @@ function setupIpcHandlers() {
       }
     }
 
-    const openedNotes: OpenedNote[] = [];
+    let openedNoteExists = false;
+    let openedNoteContent = '';
 
-    for (const notePath of [['Welcome to StackBox.md']]) {
-      const noteFilePath = path.join(boxPath, ...notePath);
-      const noteExists = await fileExists(noteFilePath);
-      if (!noteExists) {
-        continue;
-      }
-
-      if (noteExists) {
-        openedNotes.push({
-          path: notePath,
-        } as OpenedNote);
+    if (boxConfig.openedNote && boxConfig.openedNote.length > 0) {
+      if (await fileExists(path.join(boxPath, boxConfig.openedNote.join(path.sep)))) {
+        openedNoteExists = true;
+        openedNoteContent = await loadNote(boxConfig.openedNote);
       }
     }
 
+    const openedNote = openedNoteExists
+      ? {
+        path: boxConfig.openedNote,
+        content: openedNoteContent,
+      }
+      : null;
+
     return {
       box,
-      openedNotes,
+      openedNote,
     } as StartupData;
   })
 
@@ -171,14 +182,7 @@ function setupIpcHandlers() {
   })
 
   ipcMain.handle('load-note', async (_, notePath) => {
-    const filePath = path.join(boxPath, notePath.join(path.sep));
-
-    try {
-      return await readFile(filePath, 'utf-8');
-    } catch (error) {
-      console.error('Error reading file:', error);
-      throw error;
-    }
+    return await loadNote(notePath);
   });
 
   ipcMain.handle('save-note', async (_, notePath, content) => {
@@ -195,7 +199,7 @@ function setupIpcHandlers() {
     }
   });
 
-  ipcMain.handle('save-box-state', async (_, folders, opendNote) => {
+  ipcMain.handle('save-box-state', async (_, folders, openedNote) => {
     if (noWrite) return true;
 
     const boxConfigPath = path.join(boxPath, '.stackbox', 'config.json');
@@ -209,7 +213,7 @@ function setupIpcHandlers() {
 
     const boxConfig: BoxConfig = {
       expandedFolders: folders,
-      openedNotes: [opendNote],
+      openedNote,
     }
 
     try {
