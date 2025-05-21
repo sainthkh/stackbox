@@ -31,6 +31,47 @@ async function loadNote(notePath: FilePath): Promise<string> {
   }
 }
 
+function isFolderExpanded(folderPath: FilePath, expandedList: FilePath[]): boolean {
+  return expandedList.some((expandedPath) => {
+    return expandedPath.length === folderPath.length && expandedPath.every((part, index) => part === folderPath[index]);
+  });
+}
+
+async function loadItems(folderPath: FilePath, boxConfig: BoxConfig): Promise<SavedItem[]> {
+  const items: SavedItem[] = [];
+  const files = await readdir(path.join(boxPath, ...folderPath), { withFileTypes: true });
+
+  for (const file of files) {
+    const newPath = [...folderPath, file.name];
+
+    if (file.isDirectory()) {
+      // Skip hidden directories
+      if (file.name.startsWith('.')) {
+        continue;
+      }
+
+      const isExpanded = isFolderExpanded(newPath, boxConfig.expandedFolders);
+
+      items.push({
+        type: 'folder',
+        path: newPath,
+        expanded: isExpanded,
+        items: isExpanded
+          ? await loadItems(newPath, boxConfig)
+          : [],
+      } as SavedFolder);
+    }
+    else {
+      items.push({
+        type: 'note',
+        path: newPath,
+      } as SavedNote);
+    }
+  }
+
+  return items;
+}
+
 interface BoxConfig {
   expandedFolders: FilePath[];
   openedNote: FilePath;
@@ -72,29 +113,7 @@ function setupIpcHandlers() {
       items: [],
     };
 
-    const files = await readdir(boxPath, { withFileTypes: true });
-
-    for (const file of files) {
-      if (file.isDirectory()) {
-        // Skip hidden directories
-        if (file.name.startsWith('.')) {
-          continue;
-        }
-
-        box.items.push({
-          type: 'folder',
-          path: [file.name],
-          expanded: false,
-          items: [],
-        } as SavedFolder);
-      }
-      else {
-        box.items.push({
-          type: 'note',
-          path: [file.name],
-        } as SavedNote);
-      }
-    }
+    box.items = await loadItems([], boxConfig);
 
     let openedNoteExists = false;
     let openedNoteContent = '';
