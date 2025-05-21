@@ -165,6 +165,19 @@ const findNote = <T extends { notePath: FilePath }>(items: NeItem[], level: numb
   }
 }
 
+const collectOpenFolders = (result: FilePath[], items: NeItem[]) => {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+
+    if (item.type === 'folder') {
+      if (item.expanded) {
+        result.push(item.path);
+        collectOpenFolders(result, item.items);
+      }
+    }
+  }
+}
+
 export const boxSlice = createSlice({
   name: 'box',
   initialState,
@@ -396,11 +409,13 @@ export const saveNote = (notePath: FilePath, content: string) =>
   }
 
 export const saveBoxState = () =>
-  async (dispatch: any, getState: any) => {
+  async (_: any, getState: any) => {
     const box = getState().box;
     const openNotePath = box.openNote?.notePath || [];
+    const folders: FilePath[] = []
+    collectOpenFolders(folders, box.noteTree.items);
 
-    await window.electronAPI.saveBoxState([], openNotePath);
+    await window.electronAPI.saveBoxState(folders, openNotePath);
   }
 
 // Utilities
