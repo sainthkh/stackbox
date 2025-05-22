@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import NeContextMenu from './NeContextMenu'
 import EditableNoteName from './EditableNoteName';
 import { type NeNote, noteName, renameNote, addTBANote, openNote, } from '../../redux/boxSlice';
+import { getPaddingLeft } from '../util';
 
 type NoteContextCommand =
   | 'rename'
@@ -11,9 +12,13 @@ type NoteContextCommand =
 
 export interface NeNoteProps {
   note: NeNote;
+  level: number;
 }
 
-const NeNote: React.FC<NeNoteProps> = ({ note }) => {
+const NeNote: React.FC<NeNoteProps> = ({
+  note,
+  level,
+}) => {
   const dispatch = useAppDispatch();
 
   const [editing, setEditing] = useState(false);
@@ -59,7 +64,10 @@ const NeNote: React.FC<NeNoteProps> = ({ note }) => {
 
   return (
     <div
-      className={`note-name flex items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active`}
+      className={`note-name flex items-center py-1 pr-3 text-xs cursor-pointer hover:bg-sidebar-active`}
+      style={{
+        paddingLeft: getPaddingLeft(level),
+      }}
       onClick={handleClick}
       onContextMenu={handleContextMenu}
     >

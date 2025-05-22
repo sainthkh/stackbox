@@ -3,8 +3,8 @@ import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { type NeFolder, toggleFolder, addTBANoteToFolder } from '../../redux/boxSlice';
 import NeContextMenu from './NeContextMenu';
 import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import NeNote from './NeNote';
-import NeTBANote from './NeTBANote';
+import NeItems from './NeItems';
+import { getPaddingLeft } from '../util';
 
 type FolderContextCommand =
   | 'add-new-note'
@@ -12,9 +12,13 @@ type FolderContextCommand =
 
 export interface NeFolderProps {
   folder: NeFolder;
+  level: number;
 }
 
-const NeFolder: React.FC<NeFolderProps> = ({ folder }) => {
+const NeFolder: React.FC<NeFolderProps> = ({
+  folder,
+  level,
+}) => {
   const dispatch = useAppDispatch();
 
   const [showContextMenu, setShowContextMenu] = useState(false);
@@ -49,41 +53,34 @@ const NeFolder: React.FC<NeFolderProps> = ({ folder }) => {
   }
 
   return (
-    <div
-      className={`folder-name items-center px-3 py-1 text-xs cursor-pointer hover:bg-sidebar-active`}
-      onClick={onClick}
-      onContextMenu={handleContextMenu}
-    >
-      <NeContextMenu
-        menuId='folder-context-menu'
-        menuItems={[
-          { id: 'add-new-note', command: 'add-new-note', content: 'Add new note' },
-        ]}
-        showContextMenu={showContextMenu}
-        position={mousePosition}
-        closeContextMenu={() => setShowContextMenu(false)}
-        doMenu={doMenu}
-      />
-      <div className="flex">
-        {folder.expanded
-          ? <ChevronDownIcon className="h-4 w-4 mr-2" />
-          : <ChevronRightIcon className="h-4 w-4 mr-2" />}
-        <span className="text-xs text-text-primary">{name}</span>
+    <>
+      <div
+        className={`folder-name items-center py-1 pr-3 text-xs cursor-pointer hover:bg-sidebar-active`}
+        style={{
+          paddingLeft: getPaddingLeft(level),
+        }}
+        onClick={onClick}
+        onContextMenu={handleContextMenu}
+      >
+        <NeContextMenu
+          menuId='folder-context-menu'
+          menuItems={[
+            { id: 'add-new-note', command: 'add-new-note', content: 'Add new note' },
+          ]}
+          showContextMenu={showContextMenu}
+          position={mousePosition}
+          closeContextMenu={() => setShowContextMenu(false)}
+          doMenu={doMenu}
+        />
+        <div className="flex">
+          {folder.expanded
+            ? <ChevronDownIcon className="h-4 w-4 mr-2" />
+            : <ChevronRightIcon className="h-4 w-4 mr-2" />}
+          <span className="text-xs text-text-primary">{name}</span>
+        </div>
       </div>
-      <div>
-        {folder.expanded && (
-          folder.items.map((item) => {
-            if (item.type === 'folder') {
-              return <NeFolder key={item.id} folder={item} />;
-            } else if (item.type === 'note') {
-              return <NeNote key={item.id} note={item} />;
-            } else if (item.type === 'tba-note') {
-              return <NeTBANote key={item.id} tbaNote={item} />;
-            }
-          })
-        )}
-      </div>
-    </div>
+      {folder.expanded && <NeItems items={folder.items} level={level + 1} />}
+    </>
   )
 }
 

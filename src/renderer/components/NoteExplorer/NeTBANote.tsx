@@ -2,13 +2,17 @@ import React from 'react';
 import { useAppDispatch } from '../../redux/hooks';
 import { NeTBANote, noteName, saveTBANote, cancelTBANote } from '../../redux/boxSlice';
 import EditableNoteName from './EditableNoteName';
+import { getPaddingLeft } from '../util';
+import { get } from 'http';
 
 export interface NeTBANoteProps {
   tbaNote: NeTBANote;
+  level: number;
 }
 
 const NeTBANote: React.FC<NeTBANoteProps> = ({
   tbaNote,
+  level,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -23,7 +27,11 @@ const NeTBANote: React.FC<NeTBANoteProps> = ({
   }
 
   return (
-    <div>
+    <div
+      style={{
+        paddingLeft: getPaddingLeft(level),
+      }}
+    >
       <EditableNoteName
         name={noteName(tbaNote)}
         onFinishEdit={onFinishEdit}
