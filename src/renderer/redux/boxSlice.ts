@@ -17,6 +17,8 @@ export type NeItemType =
 
 export type NoteExplorerTree = {
   name: string;
+  hasFocus: boolean;
+  rename: FilePath | null;
   items: NeItem[];
 }
 
@@ -88,6 +90,8 @@ export interface BoxState {
 const initialState: BoxState = {
   noteTree: {
     name: 'root',
+    hasFocus: false,
+    rename: null,
     items: [],
   },
   openNote: null,
@@ -225,6 +229,14 @@ export const boxSlice = createSlice({
       }
     },
 
+    focusNoteExplorer(state, action: PayloadAction<boolean>) {
+      state.noteTree.hasFocus = action.payload;
+    },
+
+    beginRename(state, action: PayloadAction<FilePath | null>) {
+      state.noteTree.rename = action.payload;
+    },
+
     // Internal Actions
     initializeInternal(state, action: PayloadAction<StartupData>) {
       const { box, openedNote } = action.payload;
@@ -334,6 +346,8 @@ export const {
   cancelTBANote,
   updateOpenNoteTitle,
   updateOpenNoteContent,
+  focusNoteExplorer,
+  beginRename,
 } = boxSlice.actions
 
 

@@ -2,8 +2,16 @@ import React, { useState, useEffect, } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import NeContextMenu from './NeContextMenu'
 import EditableNoteName from './EditableNoteName';
-import { type NeNote, noteName, renameNote, addTBANote, openNote, } from '../../redux/boxSlice';
-import { getPaddingLeft } from '../util';
+import {
+  type NeNote,
+  noteName,
+  renameNote,
+  addTBANote,
+  openNote,
+  focusNoteExplorer,
+  beginRename,
+} from '../../redux/boxSlice';
+import { getPaddingLeft, filePathEquals } from '../util';
 
 type NoteContextCommand =
   | 'rename'
@@ -20,16 +28,19 @@ const NeNote: React.FC<NeNoteProps> = ({
   level,
 }) => {
   const dispatch = useAppDispatch();
-  const openNotePath = useAppSelector(state => state.box.openNote?.notePath);
-  const isOpen = openNotePath?.join('/') === note.path.join('/');
+  const rename = useAppSelector(state => state.box.noteTree.rename);
+  const isRenaming = rename && filePathEquals(rename, note.path);
 
-  const [editing, setEditing] = useState(false);
+  const openNotePath = useAppSelector(state => state.box.openNote?.notePath);
+  const isOpen = openNotePath && filePathEquals(openNotePath, note.path);
+
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    dispatch(focusNoteExplorer(true));
     dispatch(openNote(note.path));
   }
 
@@ -43,7 +54,7 @@ const NeNote: React.FC<NeNoteProps> = ({
   const doMenu = (menu: NoteContextCommand) => {
     switch (menu) {
       case 'rename': {
-        setEditing(true);
+        dispatch(beginRename(note.path));
         break;
       }
       case 'new-note': {
@@ -57,11 +68,11 @@ const NeNote: React.FC<NeNoteProps> = ({
 
   const onFinishEdit = (newName: string) => {
     dispatch(renameNote(note.path, newName));
-    setEditing(false);
+    dispatch(beginRename(null));
   }
 
   const onCancelEdit = () => {
-    setEditing(false);
+    dispatch(beginRename(null));
   }
 
   let bg = '';
@@ -92,7 +103,7 @@ const NeNote: React.FC<NeNoteProps> = ({
         closeContextMenu={() => setShowContextMenu(false)}
         doMenu={doMenu}
       />
-      {editing ? (
+      {isRenaming ? (
         <EditableNoteName
           name={noteName(note)}
           onFinishEdit={onFinishEdit}

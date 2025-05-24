@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { MousePosition } from 'src/types';
+import { useOutsideClick } from '../hooks';
 
 export type MenuItem<T> = {
   id: string
@@ -26,19 +27,7 @@ export default function NeContextMenu<T>({
 }: ContextMenuProps<T>) {
   const contextMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close context menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
-        closeContextMenu();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  useOutsideClick(contextMenuRef, () => closeContextMenu());
 
   const genOnClick = (command: T) => (e: React.MouseEvent) => {
     e.stopPropagation();
