@@ -28,6 +28,8 @@ const NeNote: React.FC<NeNoteProps> = ({
   level,
 }) => {
   const dispatch = useAppDispatch();
+  const hasFocus = useAppSelector(state => state.box.noteTree.hasFocus);
+
   const rename = useAppSelector(state => state.box.noteTree.rename);
   const isRenaming = rename && filePathEquals(rename, note.path);
 
@@ -77,8 +79,10 @@ const NeNote: React.FC<NeNoteProps> = ({
 
   let bg = '';
 
-  if (isOpen) {
-    bg = 'bg-indigo-900';
+  if (isOpen && hasFocus) {
+    bg = 'bg-blue-800';
+  } else if (isOpen && !hasFocus) {
+    bg = 'bg-slate-700';
   } else {
     bg = 'hover:bg-sidebar-active'
   }
