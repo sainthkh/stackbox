@@ -229,12 +229,13 @@ export const boxSlice = createSlice({
     initializeInternal(state, action: PayloadAction<StartupData>) {
       const { box, openedNote } = action.payload;
       state.noteTree = {
+        ...state.noteTree,
         name: box.path[box.path.length - 1],
         items: convertFolderItems(box.items),
       };
       if (openedNote) {
         state.openNote = {
-          title: openedNote.path[openedNote.path.length - 1],
+          title: noteNameFromPath(openedNote.path),
           content: openedNote.content,
           notePath: openedNote.path,
         }

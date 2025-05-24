@@ -20,6 +20,8 @@ const NeNote: React.FC<NeNoteProps> = ({
   level,
 }) => {
   const dispatch = useAppDispatch();
+  const openNotePath = useAppSelector(state => state.box.openNote?.notePath);
+  const isOpen = openNotePath?.join('/') === note.path.join('/');
 
   const [editing, setEditing] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
@@ -62,9 +64,17 @@ const NeNote: React.FC<NeNoteProps> = ({
     setEditing(false);
   }
 
+  let bg = '';
+
+  if (isOpen) {
+    bg = 'bg-indigo-900';
+  } else {
+    bg = 'hover:bg-sidebar-active'
+  }
+
   return (
     <div
-      className={`note-name flex items-center py-1 pr-3 text-xs cursor-pointer hover:bg-sidebar-active`}
+      className={`note-name flex items-center py-1 pr-3 text-xs cursor-pointer ${bg}`}
       style={{
         paddingLeft: getPaddingLeft(level),
       }}

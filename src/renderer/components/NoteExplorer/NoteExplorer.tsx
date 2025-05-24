@@ -10,7 +10,10 @@ const NoteExplorer: React.FC<NoteExplorerProps> = ({
   const box = useAppSelector(state => state.box);
 
   return (
-    <div id="notes" className="h-full bg-sidebar-bg border-r border-border overflow-y-auto">
+    <div
+      id="notes"
+      className="h-full bg-sidebar-bg border-r border-border overflow-y-auto"
+    >
       <NeItems
         items={box.noteTree.items}
         level={0}
