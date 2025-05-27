@@ -46,6 +46,7 @@ const NoteExplorer: React.FC<NoteExplorerProps> = ({
   return (
     <div
       ref={ref}
+      data-testid="note-explorer"
       id="notes"
       className="h-full bg-sidebar-bg border-r border-border overflow-y-auto"
       onClick={handleClick}

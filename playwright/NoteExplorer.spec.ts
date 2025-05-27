@@ -124,6 +124,17 @@ describe('NoteExplorer', () => {
         const markdownEditorTitle = await pwWnd.locator('#note-title');
         await expect(markdownEditorTitle).toHaveValue('Renamed Note Title');
       });
+
+      test('when NoteExplorer has focus, pressing F2 opens rename editor', async () => {
+        const note = await pwWnd.locator('.note-name')
+          .filter({ hasText: 'Test your note skill' });
+        await note.click();
+        await note.press('F2');
+
+        const noteTitle = await pwWnd.locator('#editable-file-name');
+        await expect(noteTitle).toBeVisible();
+        await expect(noteTitle).toHaveValue('Test your note skill');
+      });
     })
   })
 
