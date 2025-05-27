@@ -72,6 +72,11 @@ async function loadItems(folderPath: FilePath, boxConfig: BoxConfig): Promise<Sa
   return items;
 }
 
+interface ParsedBoxConfig {
+  expandedFolders?: FilePath[];
+  openedNote?: FilePath;
+}
+
 interface BoxConfig {
   expandedFolders: FilePath[];
   openedNote: FilePath;
@@ -106,7 +111,11 @@ function setupIpcHandlers() {
     }
 
     const boxConfigJson = await readFile(boxConfigPath, 'utf-8');
-    const boxConfig: BoxConfig = JSON.parse(boxConfigJson);
+    const parsedBoxConfig: ParsedBoxConfig = JSON.parse(boxConfigJson);
+    const boxConfig: BoxConfig = {
+      expandedFolders: parsedBoxConfig.expandedFolders || [],
+      openedNote: parsedBoxConfig.openedNote || [],
+    };
 
     const box: SavedBox = {
       path: rootPath,
